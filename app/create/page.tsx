@@ -15,15 +15,14 @@ export default function CreatePage() {
   const [dragX, setDragX] = useState(0);
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
   const pointerStartX = useRef<number | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const themes = useMemo(() => Object.values(THEMES), []);
-  const currentThemeIndex = Math.max(
-    0,
-    themes.findIndex((themeOption) => themeOption.key === draft.themeKey),
-  );
+  const currentThemeIndex = Math.max(0, themes.findIndex((themeOption) => themeOption.key === draft.themeKey));
   const theme = THEMES[draft.themeKey];
 
   function updateField<K extends keyof InvitationDraft>(key: K, value: InvitationDraft[K]) {
@@ -59,10 +58,9 @@ export default function CreatePage() {
   }
 
   function handleNav(offset: 1 | -1) {
-    if (isDragging) {
-      return;
+    if (!isDragging) {
+      animateToTheme(offset);
     }
-    animateToTheme(offset);
   }
 
   function isInteractiveTarget(target: EventTarget | null): boolean {
@@ -102,12 +100,7 @@ export default function CreatePage() {
       return;
     }
 
-    if (dragX < 0) {
-      animateToTheme(1);
-    } else {
-      animateToTheme(-1);
-    }
-
+    animateToTheme(dragX < 0 ? 1 : -1);
     pointerStartX.current = null;
   }
 
@@ -115,6 +108,8 @@ export default function CreatePage() {
     if (!file) {
       return;
     }
+
+    setSelectedFileName(file.name);
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -131,7 +126,7 @@ export default function CreatePage() {
 
   return (
     <main className="mobile-shell stack">
-      <section className="paper-panel" style={{ padding: 20 }}>
+      <section className="paper-panel" style={{ padding: "20px 20px 15px" }}>
         <div className="row" style={{ justifyContent: "center", marginBottom: 10 }}>
           {themes.map((themeOption, index) => (
             <span
@@ -149,11 +144,10 @@ export default function CreatePage() {
 
         <div className="card-carousel" ref={viewportRef}>
           <button className="card-nav left" type="button" onClick={() => handleNav(-1)} aria-label="이전 테마">
-            ‹
+            <span>‹</span>
           </button>
-
           <button className="card-nav right" type="button" onClick={() => handleNav(1)} aria-label="다음 테마">
-            ›
+            <span>›</span>
           </button>
 
           <article
@@ -169,6 +163,7 @@ export default function CreatePage() {
             onPointerLeave={handlePointerUp}
           >
             <h3 className="theme-title">{theme.label}</h3>
+
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{theme.emojis.join(" ")}</p>
               <input
@@ -182,45 +177,39 @@ export default function CreatePage() {
 
             <section className="stack" style={{ marginTop: 14 }}>
               <div className="row">
-                <span aria-hidden>📅</span>
-                <input
-                  className="editable-card-input"
-                  type="date"
-                  value={draft.date}
-                  onChange={(e) => updateField("date", e.target.value)}
-                />
+                <span className="meta-icon" aria-hidden>📅</span>
+                <input className="editable-card-input" type="date" value={draft.date} onChange={(e) => updateField("date", e.target.value)} />
               </div>
               <div className="row">
-                <span aria-hidden>🕒</span>
-                <input
-                  className="editable-card-input"
-                  type="time"
-                  value={draft.time}
-                  onChange={(e) => updateField("time", e.target.value)}
-                />
+                <span className="meta-icon" aria-hidden>🕒</span>
+                <input className="editable-card-input" type="time" value={draft.time} onChange={(e) => updateField("time", e.target.value)} />
               </div>
               <div className="row">
-                <span aria-hidden>📍</span>
-                <input
-                  className="editable-card-input"
-                  value={draft.place}
-                  onChange={(e) => updateField("place", e.target.value)}
-                  placeholder="장소를 입력해 주세요"
-                />
+                <span className="meta-icon" aria-hidden>📍</span>
+                <input className="editable-card-input" value={draft.place} onChange={(e) => updateField("place", e.target.value)} placeholder="장소를 입력해 주세요" />
               </div>
             </section>
 
             <div className="polaroid">
               <img src={draft.imageUrl} alt="초대장 사진" />
-              <label className="upload-inline">
-                사진 바꾸기
-                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)} />
-              </label>
+              <div className="upload-inline">
+                <input
+                  ref={fileInputRef}
+                  className="file-input-hidden"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+                />
+                <button className="upload-trigger" type="button" onClick={() => fileInputRef.current?.click()}>
+                  사진 바꾸기
+                </button>
+                {selectedFileName ? <span className="upload-file-name">{selectedFileName}</span> : null}
+              </div>
             </div>
           </article>
         </div>
 
-        <button className="btn-primary" style={{ width: "100%", marginTop: 14 }} onClick={goAccept}>
+        <button className="btn-primary" style={{ width: "100%" }} onClick={goAccept}>
           초대장 저장 후 열어보기
         </button>
       </section>
