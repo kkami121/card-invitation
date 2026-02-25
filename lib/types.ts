@@ -1,7 +1,12 @@
-﻿export type OccasionKey =
+export type OccasionKey =
+  | "promise"
+  | "weekend-date"
+  | "birthday"
+  | "childrens-day"
+  | "samgyeopsal-day"
+  | "white-day"
   | "valentine"
   | "christmas"
-  | "birthday"
   | "pepero"
   | "lunar-new-year"
   | "chuseok";

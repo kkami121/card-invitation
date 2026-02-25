@@ -6,7 +6,7 @@ const STORAGE_KEY = "cardInvitationState";
 export const initialInvitationState: InvitationState = {
   draft: {
     themeKey: DEFAULT_THEME_KEY,
-    title: "Happy Valentine's Day!",
+    title: "Let's catch up!",
     date: "2026-02-14",
     time: "13:30",
     place: "스시아자 광화문점",

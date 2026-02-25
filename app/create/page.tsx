@@ -4,25 +4,124 @@ import { type PointerEvent, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES, defaultImageDataUrl } from "@/lib/themes";
-import { InvitationDraft } from "@/lib/types";
+import { InvitationDraft, OccasionKey } from "@/lib/types";
 
 const SWIPE_THRESHOLD = 70;
 const ANIMATION_MS = 220;
+const PLACE_PLACEHOLDERS = ["홍대입구역", "성수역", "여의도한강공원", "잠실 롯데월드몰", "광화문 광장"];
+
+const THEME_MONTH_DAY: Partial<Record<OccasionKey, { month: number; day: number }>> = {
+  "childrens-day": { month: 5, day: 5 },
+  "samgyeopsal-day": { month: 3, day: 3 },
+  "white-day": { month: 3, day: 14 },
+  valentine: { month: 2, day: 14 },
+  pepero: { month: 11, day: 11 },
+  christmas: { month: 12, day: 25 },
+  "lunar-new-year": { month: 2, day: 17 },
+  chuseok: { month: 9, day: 25 },
+};
+
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatTime(date: Date): string {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function getRandomPlacePlaceholder(): string {
+  return PLACE_PLACEHOLDERS[Math.floor(Math.random() * PLACE_PLACEHOLDERS.length)];
+}
+
+function addDays(base: Date, days: number): Date {
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate() + days);
+}
+
+function getNextDateFromMonthDay(base: Date, month: number, day: number): Date {
+  const candidate = new Date(base.getFullYear(), month - 1, day);
+  const baseStart = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  if (candidate < baseStart) {
+    return new Date(base.getFullYear() + 1, month - 1, day);
+  }
+  return candidate;
+}
+
+function resolveThemeDate(themeKey: OccasionKey, base: Date): string {
+  if (themeKey === "promise") {
+    return formatDate(base);
+  }
+
+  if (themeKey === "weekend-date") {
+    return formatDate(addDays(base, 1));
+  }
+
+  if (themeKey === "birthday") {
+    return formatDate(addDays(base, 2));
+  }
+
+  const monthDay = THEME_MONTH_DAY[themeKey];
+  if (!monthDay) {
+    return formatDate(base);
+  }
+
+  return formatDate(getNextDateFromMonthDay(base, monthDay.month, monthDay.day));
+}
+
+function daysUntilTheme(themeKey: OccasionKey, base: Date): number {
+  const target = new Date(resolveThemeDate(themeKey, base));
+  const baseStart = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  const diff = target.getTime() - baseStart.getTime();
+  return Math.floor(diff / (24 * 60 * 60 * 1000));
+}
 
 export default function CreatePage() {
   const router = useRouter();
-  const [draft, setDraft] = useState<InvitationDraft>(initialInvitationState.draft);
+  const now = useMemo(() => new Date(), []);
+
+  const [draft, setDraft] = useState<InvitationDraft>(() => ({
+    ...initialInvitationState.draft,
+    themeKey: "promise",
+    title: THEMES.promise.title,
+    date: formatDate(now),
+    time: formatTime(now),
+    place: "",
+  }));
   const [dragX, setDragX] = useState(0);
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomPlacePlaceholder());
 
   const pointerStartX = useRef<number | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const themes = useMemo(() => Object.values(THEMES), []);
-  const currentThemeIndex = Math.max(0, themes.findIndex((themeOption) => themeOption.key === draft.themeKey));
+  const orderedThemes = useMemo(() => {
+    const allThemes = Object.values(THEMES);
+    const promiseTheme = allThemes.find((themeOption) => themeOption.key === "promise");
+    const sortedByNear = allThemes
+      .filter((themeOption) => themeOption.key !== "promise")
+      .sort((a, b) => daysUntilTheme(a.key, now) - daysUntilTheme(b.key, now));
+
+    if (!promiseTheme) {
+      return sortedByNear;
+    }
+
+    // Keep promise in the center:
+    // immediate left = farthest date, immediate right = closest date.
+    const splitIndex = Math.ceil(sortedByNear.length / 2);
+    const rightSide = sortedByNear.slice(0, splitIndex); // closest -> farther
+    const leftSide = sortedByNear.slice(splitIndex); // middle/farther -> farthest
+
+    return [...leftSide, promiseTheme, ...rightSide];
+  }, [now]);
+
+  const currentThemeIndex = Math.max(0, orderedThemes.findIndex((themeOption) => themeOption.key === draft.themeKey));
   const theme = THEMES[draft.themeKey];
 
   function updateField<K extends keyof InvitationDraft>(key: K, value: InvitationDraft[K]) {
@@ -30,9 +129,20 @@ export default function CreatePage() {
   }
 
   function updateThemeByOffset(offset: number) {
-    const length = themes.length;
+    const length = orderedThemes.length;
     const nextIndex = (currentThemeIndex + offset + length) % length;
-    updateField("themeKey", themes[nextIndex].key);
+    const nextTheme = orderedThemes[nextIndex];
+    const base = new Date();
+
+    setDraft((prev) => ({
+      ...prev,
+      themeKey: nextTheme.key,
+      title: nextTheme.title,
+      date: resolveThemeDate(nextTheme.key, base),
+      time: nextTheme.key === "promise" ? formatTime(base) : prev.time,
+    }));
+
+    setPlacePlaceholder(getRandomPlacePlaceholder());
   }
 
   function animateToTheme(offset: 1 | -1) {
@@ -128,7 +238,7 @@ export default function CreatePage() {
     <main className="mobile-shell stack">
       <section className="paper-panel" style={{ padding: "20px 20px 15px" }}>
         <div className="row" style={{ justifyContent: "center", marginBottom: 10 }}>
-          {themes.map((themeOption, index) => (
+          {orderedThemes.map((themeOption, index) => (
             <span
               key={themeOption.key}
               style={{
@@ -186,7 +296,7 @@ export default function CreatePage() {
               </div>
               <div className="row">
                 <span className="meta-icon" aria-hidden>📍</span>
-                <input className="editable-card-input" value={draft.place} onChange={(e) => updateField("place", e.target.value)} placeholder="장소를 입력해 주세요" />
+                <input className="editable-card-input" value={draft.place} onChange={(e) => updateField("place", e.target.value)} placeholder={placePlaceholder} />
               </div>
             </section>
 
