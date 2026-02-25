@@ -1,0 +1,217 @@
+/*!*************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./app/globals.css ***!
+  \*************************************************************************************************************************************************************************************************************************************************************/
+:root {
+  --paper-base: #f5f0e6;
+  --paper-ink: #2f2a24;
+  --paper-muted: #756d63;
+  --card: #fffdf8;
+  --line: #ddd2c2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--paper-ink);
+  font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.45), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.04), transparent 35%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0 2px, transparent 2px 5px),
+    var(--paper-base);
+}
+
+main.mobile-shell {
+  min-height: 100vh;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 24px 18px 36px;
+}
+
+.paper-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(67, 53, 40, 0.14);
+}
+
+.font-script {
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.polaroid {
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 14px 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.polaroid img {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+input,
+select,
+button {
+  font: inherit;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2e6342;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #ece4d8;
+  color: #3f372d;
+}
+
+.btn-danger {
+  background: #d64545;
+  color: #fff;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+@media (max-width: 380px) {
+  main.mobile-shell {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+.editable-card-input {
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  border-radius: 0;
+  padding: 6px 4px;
+  background: transparent;
+}
+
+.editable-card-input:focus {
+  outline: none;
+  border-bottom-color: #7b6a53;
+}
+
+.editable-card-input.title {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 42px;
+  line-height: 1.1;
+  margin-top: 6px;
+}
+
+.upload-inline {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+
+.upload-inline input {
+  border: 0;
+  padding: 0;
+  width: auto;
+}
+
+.theme-title {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.card-carousel {
+  position: relative;
+  margin-top: 8px;
+  padding: 12px 0;
+  touch-action: pan-y;
+}
+
+.invitation-card {
+  position: relative;
+  z-index: 2;
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(45, 38, 30, 0.16);
+  will-change: transform;
+}
+
+.card-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0 6px;
+  font-size: 34px;
+  line-height: 1;
+  background: transparent;
+  color: #4d4338;
+  z-index: 4;
+}
+
+.card-nav.left {
+  left: -28px;
+}
+
+.card-nav.right {
+  right: -28px;
+}
