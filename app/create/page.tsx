@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { type PointerEvent, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import GoogleAd from "@/components/GoogleAd";
 import { initialInvitationState, saveInvitationState } from "@/lib/storage";
-import { THEMES, defaultImageDataUrl } from "@/lib/themes";
+import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
 
 const SWIPE_THRESHOLD = 70;
@@ -55,11 +56,9 @@ function resolveThemeDate(themeKey: OccasionKey, base: Date): string {
   if (themeKey === "promise") {
     return formatDate(base);
   }
-
   if (themeKey === "weekend-date") {
     return formatDate(addDays(base, 1));
   }
-
   if (themeKey === "birthday") {
     return formatDate(addDays(base, 2));
   }
@@ -68,7 +67,6 @@ function resolveThemeDate(themeKey: OccasionKey, base: Date): string {
   if (!monthDay) {
     return formatDate(base);
   }
-
   return formatDate(getNextDateFromMonthDay(base, monthDay.month, monthDay.day));
 }
 
@@ -90,6 +88,7 @@ export default function CreatePage() {
     date: formatDate(now),
     time: formatTime(now),
     place: "",
+    imageUrl: THEMES.promise.defaultImageUrl,
   }));
   const [dragX, setDragX] = useState(0);
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
@@ -112,12 +111,9 @@ export default function CreatePage() {
       return sortedByNear;
     }
 
-    // Keep promise in the center:
-    // immediate left = farthest date, immediate right = closest date.
     const splitIndex = Math.ceil(sortedByNear.length / 2);
-    const rightSide = sortedByNear.slice(0, splitIndex); // closest -> farther
-    const leftSide = sortedByNear.slice(splitIndex); // middle/farther -> farthest
-
+    const rightSide = sortedByNear.slice(0, splitIndex);
+    const leftSide = sortedByNear.slice(splitIndex);
     return [...leftSide, promiseTheme, ...rightSide];
   }, [now]);
 
@@ -140,8 +136,10 @@ export default function CreatePage() {
       title: nextTheme.title,
       date: resolveThemeDate(nextTheme.key, base),
       time: nextTheme.key === "promise" ? formatTime(base) : prev.time,
+      imageUrl: nextTheme.defaultImageUrl,
     }));
 
+    setSelectedFileName(null);
     setPlacePlaceholder(getRandomPlacePlaceholder());
   }
 
@@ -223,7 +221,7 @@ export default function CreatePage() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : defaultImageDataUrl;
+      const dataUrl = typeof reader.result === "string" ? reader.result : theme.defaultImageUrl;
       updateField("imageUrl", dataUrl);
     };
     reader.readAsDataURL(file);
@@ -236,6 +234,8 @@ export default function CreatePage() {
 
   return (
     <main className="mobile-shell stack">
+      <GoogleAd slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ""} className="ad-top" />
+
       <section className="paper-panel" style={{ padding: "20px 20px 15px" }}>
         <div className="row" style={{ justifyContent: "center", marginBottom: 10 }}>
           {orderedThemes.map((themeOption, index) => (
@@ -311,7 +311,7 @@ export default function CreatePage() {
                   onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                 />
                 <button className="upload-trigger" type="button" onClick={() => fileInputRef.current?.click()}>
-                  사진 바꾸기
+                  사진 업로드
                 </button>
                 {selectedFileName ? <span className="upload-file-name">{selectedFileName}</span> : null}
               </div>
@@ -319,7 +319,7 @@ export default function CreatePage() {
           </article>
         </div>
 
-        <button className="btn-primary" style={{ width: "100%" }} onClick={goAccept}>
+        <button className="btn-primary" style={{ width: "100%", background: theme.accent }} onClick={goAccept}>
           초대장 저장 후 열어보기
         </button>
       </section>

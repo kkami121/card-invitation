@@ -1,4 +1,4 @@
-﻿import { defaultImageDataUrl, DEFAULT_THEME_KEY } from "@/lib/themes";
+import { THEMES, defaultImageDataUrl, DEFAULT_THEME_KEY } from "@/lib/themes";
 import { InvitationState } from "@/lib/types";
 
 const STORAGE_KEY = "cardInvitationState";
@@ -6,10 +6,10 @@ const STORAGE_KEY = "cardInvitationState";
 export const initialInvitationState: InvitationState = {
   draft: {
     themeKey: DEFAULT_THEME_KEY,
-    title: "Let's catch up!",
+    title: THEMES[DEFAULT_THEME_KEY].title,
     date: "2026-02-14",
     time: "13:30",
-    place: "스시아자 광화문점",
+    place: "",
     imageUrl: defaultImageDataUrl,
   },
   accepted: false,

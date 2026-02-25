@@ -18,6 +18,7 @@ export type InvitationTheme = {
   emojis: string[];
   titleClassName: string;
   accent: string;
+  defaultImageUrl: string;
 };
 
 export type InvitationDraft = {
