@@ -390,7 +390,7 @@ export default function CreatePage() {
           <article
             className="invitation-card"
             style={{
-              transform: `translateX(${dragX}px) rotate(${dragX / 45}deg)`,
+              transform: dragX === 0 ? "none" : `translateX(${dragX}px) rotate(${dragX / 45}deg)`,
               transition: `transform ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1)`,
             }}
             onPointerDown={handlePointerDown}
@@ -451,7 +451,7 @@ export default function CreatePage() {
         </div>
 
         <button className="btn-primary" style={{ width: "100%", background: theme.accent }} onClick={goAccept}>
-          초대장 저장 후 열어보기
+          초대장 보내기
         </button>
       </section>
 
