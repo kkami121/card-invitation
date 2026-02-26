@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
 
 const noMessages = [
   "아니요 버튼이 잠깐 산책 중이에요.",
@@ -42,6 +42,7 @@ export default function AcceptPage() {
   function handleYes() {
     const state = loadInvitationState();
     saveInvitationState({ ...state, accepted: true, noAttempts });
+    incrementAcceptedCount();
     router.push("/result");
   }
 

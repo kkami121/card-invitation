@@ -2,10 +2,11 @@
 
 import { type PointerEvent, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import GoogleAd from "@/components/GoogleAd";
-import { initialInvitationState, saveInvitationState } from "@/lib/storage";
+import TopBannerAd from "@/components/TopBannerAd";
+import { incrementCreatedCount, initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
+import styles from "./create.module.css";
 
 const SWIPE_THRESHOLD = 70;
 const ANIMATION_MS = 220;
@@ -229,12 +230,13 @@ export default function CreatePage() {
 
   function goAccept() {
     saveInvitationState({ draft, accepted: false, noAttempts: 0 });
+    incrementCreatedCount();
     router.push("/accept");
   }
 
   return (
-    <main className="mobile-shell stack">
-      <GoogleAd slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ""} className="ad-top" />
+    <main className={`mobile-shell stack ${styles.createShell}`}>
+      <TopBannerAd className="ad-top" accentColor={theme.accent} />
 
       <section className="paper-panel" style={{ padding: "20px 20px 15px" }}>
         <div className="row" style={{ justifyContent: "center", marginBottom: 10 }}>

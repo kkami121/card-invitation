@@ -274,20 +274,104 @@ button {
 
 .ad-top {
   width: 100%;
-  min-height: 52px;
-  margin: 0 0 10px;
+  min-height: 72px;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.ad-banner-link {
+  display: block;
+  width: 100%;
+}
+
+.ad-banner-image {
+  display: block;
+  width: 100%;
+  max-height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.ad-placeholder-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 10px;
+}
+
 .ad-placeholder {
   width: 100%;
+  min-height: 62px;
   border: 1px dashed #d8cdbf;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 12px;
   color: #7b7066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   background: rgba(255, 255, 255, 0.65);
 }
+
+.ad-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.ad-modal {
+  width: 100%;
+  max-width: 360px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.ad-modal-title {
+  margin: 0 0 12px;
+}
+
+.ad-modal-line {
+  margin: 0 0 8px;
+}
+
+.ad-email-copy {
+  border: 0;
+  border-radius: 8px;
+  background: rgba(46, 99, 66, 0.12);
+  color: #2e6342;
+  padding: 3px 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ad-modal-close {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.ad-copy-toast {
+  position: fixed;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  z-index: 70;
+  background: rgba(35, 31, 26, 0.94);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  padding: 8px 10px;
+  border-radius: 999px;
+}
+
