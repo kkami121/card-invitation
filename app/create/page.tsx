@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { type PointerEvent, useMemo, useRef, useState } from "react";
+import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBannerAd from "@/components/TopBannerAd";
 import { incrementCreatedCount, initialInvitationState, saveInvitationState } from "@/lib/storage";
@@ -94,12 +94,13 @@ export default function CreatePage() {
   const [dragX, setDragX] = useState(0);
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [titleFontSize, setTitleFontSize] = useState(42);
   const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomPlacePlaceholder());
 
   const pointerStartX = useRef<number | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
 
   const orderedThemes = useMemo(() => {
     const allThemes = Object.values(THEMES);
@@ -125,6 +126,59 @@ export default function CreatePage() {
     setDraft((prev) => ({ ...prev, [key]: value }));
   }
 
+  const fitTitleFontSize = useCallback(() => {
+    const input = titleInputRef.current;
+    if (!input) {
+      return;
+    }
+
+    const text = draft.title || input.placeholder || "";
+    const maxWidth = input.clientWidth - 6;
+    if (!text || maxWidth <= 0) {
+      setTitleFontSize(42);
+      return;
+    }
+
+    const computed = window.getComputedStyle(input);
+    const fontFamily = computed.fontFamily;
+    const fontWeight = computed.fontWeight || "400";
+    const letterSpacing = Number.parseFloat(computed.letterSpacing);
+    const letterSpacingPx = Number.isFinite(letterSpacing) ? letterSpacing : 0;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return;
+    }
+
+    let nextSize = 42;
+    const minSize = 22;
+
+    while (nextSize > minSize) {
+      ctx.font = `${fontWeight} ${nextSize}px ${fontFamily}`;
+      const measured = ctx.measureText(text).width + Math.max(0, text.length - 1) * letterSpacingPx;
+      if (measured <= maxWidth) {
+        break;
+      }
+      nextSize -= 1;
+    }
+
+    setTitleFontSize(nextSize);
+  }, [draft.title]);
+
+  useEffect(() => {
+    fitTitleFontSize();
+  }, [fitTitleFontSize, draft.themeKey]);
+
+  useEffect(() => {
+    function handleResize() {
+      fitTitleFontSize();
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [fitTitleFontSize]);
+
   function updateThemeByOffset(offset: number) {
     const length = orderedThemes.length;
     const nextIndex = (currentThemeIndex + offset + length) % length;
@@ -140,7 +194,6 @@ export default function CreatePage() {
       imageUrl: nextTheme.defaultImageUrl,
     }));
 
-    setSelectedFileName(null);
     setPlacePlaceholder(getRandomPlacePlaceholder());
   }
 
@@ -218,8 +271,6 @@ export default function CreatePage() {
       return;
     }
 
-    setSelectedFileName(file.name);
-
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = typeof reader.result === "string" ? reader.result : theme.defaultImageUrl;
@@ -279,11 +330,12 @@ export default function CreatePage() {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{theme.emojis.join(" ")}</p>
               <input
+                ref={titleInputRef}
                 className={`editable-card-input title ${theme.titleClassName}`}
                 value={draft.title}
                 onChange={(e) => updateField("title", e.target.value)}
                 placeholder={theme.title}
-                style={{ color: theme.accent }}
+                style={{ color: theme.accent, fontSize: `${titleFontSize}px` }}
               />
             </div>
 
@@ -303,20 +355,17 @@ export default function CreatePage() {
             </section>
 
             <div className="polaroid">
-              <img src={draft.imageUrl} alt="초대장 사진" />
-              <div className="upload-inline">
-                <input
-                  ref={fileInputRef}
-                  className="file-input-hidden"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
-                />
-                <button className="upload-trigger" type="button" onClick={() => fileInputRef.current?.click()}>
-                  사진 업로드
-                </button>
-                {selectedFileName ? <span className="upload-file-name">{selectedFileName}</span> : null}
-              </div>
+              <input
+                ref={fileInputRef}
+                className="file-input-hidden"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+              />
+              <button className="photo-upload-button" type="button" onClick={() => fileInputRef.current?.click()}>
+                <img src={draft.imageUrl} alt="초대장 사진" />
+              </button>
+              <p className="photo-upload-hint">사진을 누르면 이미지를 변경할 수 있습니다.</p>
             </div>
           </article>
         </div>

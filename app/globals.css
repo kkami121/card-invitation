@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap");
+
 :root {
   --paper-base: #f5f0e6;
   --paper-ink: #2f2a24;
@@ -42,7 +44,7 @@ main.mobile-shell {
 }
 
 .font-script {
-  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-family: "Dancing Script", "Segoe Script", cursive;
 }
 
 .row {
@@ -65,6 +67,7 @@ main.mobile-shell {
   border-radius: 12px;
   padding: 14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  padding-bottom: 10px;
 }
 
 .polaroid img {
@@ -74,6 +77,21 @@ main.mobile-shell {
   aspect-ratio: 1 / 1;
   object-fit: cover;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.photo-upload-button {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.photo-upload-hint {
+  margin: 8px 2px 0;
+  text-align: center;
+  font-size: 10px;
+  color: #7b7066;
 }
 
 label {
@@ -155,10 +173,16 @@ button {
   display: block;
   width: 100%;
   text-align: center;
-  font-size: 42px;
+  font-size: clamp(30px, 9vw, 42px);
   line-height: 1.1;
   margin-top: 6px;
   border-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .editable-card-input.title {
+    font-size: 30px;
+  }
 }
 
 .upload-inline {
@@ -271,7 +295,7 @@ button {
 
 .ad-top {
   width: 100%;
-  min-height: 72px;
+  min-height: 70px;
   margin: 0;
   display: flex;
   align-items: center;
@@ -301,7 +325,7 @@ button {
 
 .ad-placeholder {
   width: 100%;
-  min-height: 62px;
+  min-height: 60px;
   border: 1px dashed #d8cdbf;
   border-radius: 10px;
   padding: 10px 12px;

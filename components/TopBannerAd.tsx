@@ -54,7 +54,7 @@ export default function TopBannerAd({ className, accentColor }: Props) {
       <>
         <div className={className} aria-label="ad-placeholder">
           <button type="button" className="ad-placeholder-btn" onClick={openModal}>
-            <div className="ad-placeholder">광고 문의는 클릭해 주세요!</div>
+            <div className="ad-placeholder">광고주님 자리입니다. 문의는 클릭해 주세요!</div>
           </button>
         </div>
 
