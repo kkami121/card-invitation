@@ -105,6 +105,7 @@ export default function CreatePage() {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const placeInputRef = useRef<HTMLInputElement | null>(null);
 
   const orderedThemes = useMemo(() => {
     const allThemes = Object.values(THEMES);
@@ -284,6 +285,20 @@ export default function CreatePage() {
   }
 
   function goAccept() {
+    const trimmedTitle = draft.title.trim();
+    if (!trimmedTitle) {
+      window.alert("제목을 입력해 주세요.");
+      titleInputRef.current?.focus();
+      return;
+    }
+
+    const trimmedPlace = draft.place.trim();
+    if (!trimmedPlace) {
+      window.alert("장소를 입력해 주세요.");
+      placeInputRef.current?.focus();
+      return;
+    }
+
     saveInvitationState({ draft, accepted: false, noAttempts: 0 });
     incrementCreatedCount();
     const token = buildInviteToken(draft);
@@ -409,7 +424,13 @@ export default function CreatePage() {
               </div>
               <div className="row">
                 <span className="meta-icon" aria-hidden>📍</span>
-                <input className="editable-card-input" value={draft.place} onChange={(e) => updateField("place", e.target.value)} placeholder={placePlaceholder} />
+                <input
+                  ref={placeInputRef}
+                  className="editable-card-input"
+                  value={draft.place}
+                  onChange={(e) => updateField("place", e.target.value)}
+                  placeholder={placePlaceholder}
+                />
               </div>
             </section>
 
