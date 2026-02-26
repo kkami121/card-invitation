@@ -50,29 +50,29 @@ export default function InvitationCard({ draft }: Props) {
 
   return (
     <article className="paper-panel" style={{ padding: 20 }}>
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
+      <div style={{ textAlign: "center", marginBottom: 8 }}>
         <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{theme.emojis.join(" ")}</p>
         <h1 className={theme.titleClassName} style={{ color: theme.accent, fontSize: 44, margin: "8px 0 0" }}>
           {draft.title || theme.title}
         </h1>
       </div>
 
-      <section className="stack" style={{ marginTop: 14 }}>
-        <div className="row">
+      <section className="stack" style={{ marginTop: 10, gap: 2 }}>
+        <div className="row invitation-meta-row">
           <span aria-hidden>📅</span>
           <p className="meta-text">{formattedDate ?? "날짜를 입력해 주세요."}</p>
         </div>
-        <div className="row">
+        <div className="row invitation-meta-row">
           <span aria-hidden>🕒</span>
           <p className="meta-text">{formattedTime ?? "시간을 입력해 주세요."}</p>
         </div>
-        <div className="row">
+        <div className="row invitation-meta-row">
           <span aria-hidden>📍</span>
           <p className="meta-text">{draft.place || "장소를 입력해 주세요."}</p>
         </div>
       </section>
 
-      <div className="polaroid">
+      <div className="polaroid" style={{ marginTop: 5 }}>
         <img src={draft.imageUrl} alt="초대장 사진" />
       </div>
     </article>

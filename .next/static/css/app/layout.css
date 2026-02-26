@@ -56,6 +56,15 @@ main.mobile-shell {
   gap: 10px;
 }
 
+.invitation-meta-row {
+  height: 40px;
+}
+
+.meta-text {
+  margin: 0;
+  line-height: 1.2;
+}
+
 .meta-icon {
   width: 1.35em;
   display: inline-flex;

@@ -386,7 +386,7 @@ export default function CreatePage() {
           >
             <h3 className="theme-title">{theme.label}</h3>
 
-            <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <div style={{ textAlign: "center", marginBottom: 10 }}>
               <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{theme.emojis.join(" ")}</p>
               <input
                 ref={titleInputRef}
@@ -398,7 +398,7 @@ export default function CreatePage() {
               />
             </div>
 
-            <section className="stack" style={{ marginTop: 14 }}>
+            <section className="stack" style={{ marginTop: 10 }}>
               <div className="row">
                 <span className="meta-icon" aria-hidden>📅</span>
                 <input className="editable-card-input" type="date" value={draft.date} onChange={(e) => updateField("date", e.target.value)} />
