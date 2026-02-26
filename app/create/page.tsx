@@ -3,6 +3,7 @@
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBannerAd from "@/components/TopBannerAd";
+import { buildInviteToken } from "@/lib/invite";
 import { incrementCreatedCount, initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
@@ -96,6 +97,9 @@ export default function CreatePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [titleFontSize, setTitleFontSize] = useState(42);
   const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomPlacePlaceholder());
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const pointerStartX = useRef<number | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -282,7 +286,62 @@ export default function CreatePage() {
   function goAccept() {
     saveInvitationState({ draft, accepted: false, noAttempts: 0 });
     incrementCreatedCount();
-    router.push("/accept");
+    const token = buildInviteToken(draft);
+    const nextUrl = `${window.location.origin}/accept?invite=${encodeURIComponent(token)}`;
+    setInviteUrl(nextUrl);
+    setInviteModalOpen(true);
+  }
+
+  async function copyInviteLink() {
+    if (!inviteUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+    } catch {
+      const temp = document.createElement("textarea");
+      temp.value = inviteUrl;
+      temp.style.position = "fixed";
+      temp.style.opacity = "0";
+      document.body.appendChild(temp);
+      temp.focus();
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+    }
+
+    setLinkCopied(true);
+    window.setTimeout(() => setLinkCopied(false), 1200);
+  }
+
+  async function shareInviteLink() {
+    if (!inviteUrl) {
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "초대장 링크",
+          text: "초대장을 확인해 주세요.",
+          url: inviteUrl,
+        });
+        return;
+      } catch {
+        // fall back to copy
+      }
+    }
+
+    await copyInviteLink();
+  }
+
+  function goPreviewWithInvite() {
+    if (!inviteUrl) {
+      return;
+    }
+    const parsed = new URL(inviteUrl);
+    router.push(`${parsed.pathname}${parsed.search}`);
   }
 
   return (
@@ -374,6 +433,29 @@ export default function CreatePage() {
           초대장 저장 후 열어보기
         </button>
       </section>
+
+      {inviteModalOpen ? (
+        <div className={styles.inviteModalBackdrop} onClick={() => setInviteModalOpen(false)} role="presentation">
+          <section className={styles.inviteModal} onClick={(event) => event.stopPropagation()}>
+            <h3 className={styles.inviteModalTitle}>초대 링크가 생성되었습니다</h3>
+            <p className={styles.inviteModalDesc}>아래 링크를 공유하면 상대가 초대장을 수락할 수 있어요.</p>
+            <input className={styles.inviteInput} value={inviteUrl} readOnly />
+            <div className={styles.inviteButtons}>
+              <button type="button" className="btn-secondary" onClick={copyInviteLink}>
+                링크 복사
+              </button>
+              <button type="button" className="btn-secondary" onClick={shareInviteLink}>
+                링크 공유
+              </button>
+              <button type="button" className="btn-primary" style={{ background: theme.accent }} onClick={goPreviewWithInvite}>
+                미리보기 열기
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {linkCopied ? <div className="ad-copy-toast">복사 완료</div> : null}
     </main>
   );
 }

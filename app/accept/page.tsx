@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { parseInviteToken } from "@/lib/invite";
 import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
 
 const noMessages = [
@@ -14,16 +15,32 @@ const noMessages = [
 
 export default function AcceptPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite");
   const [ready, setReady] = useState(false);
   const [noAttempts, setNoAttempts] = useState(0);
   const [noUnlocked, setNoUnlocked] = useState(false);
   const [position, setPosition] = useState({ x: 58, y: 0 });
 
   useEffect(() => {
+    if (inviteToken) {
+      const parsed = parseInviteToken(inviteToken);
+      if (parsed) {
+        saveInvitationState({
+          draft: parsed.draft,
+          accepted: false,
+          noAttempts: 0,
+        });
+        setNoAttempts(0);
+        setReady(true);
+        return;
+      }
+    }
+
     const state = loadInvitationState();
     setNoAttempts(state.noAttempts);
     setReady(true);
-  }, []);
+  }, [inviteToken]);
 
   const noLabel = useMemo(() => {
     if (noAttempts < noMessages.length) {
@@ -43,6 +60,10 @@ export default function AcceptPage() {
     const state = loadInvitationState();
     saveInvitationState({ ...state, accepted: true, noAttempts });
     incrementAcceptedCount();
+    if (inviteToken) {
+      router.push(`/result?invite=${encodeURIComponent(inviteToken)}`);
+      return;
+    }
     router.push("/result");
   }
 
