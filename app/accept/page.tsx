@@ -28,11 +28,15 @@ export default function AcceptPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("invite");
+
   const [ready, setReady] = useState(false);
   const [noAttempts, setNoAttempts] = useState(0);
-  const [position, setPosition] = useState({ left: 220, top: 250 });
+  const [noFloating, setNoFloating] = useState(false);
+  const [position, setPosition] = useState({ left: 0, top: 0 });
+
   const panelRef = useRef<HTMLElement | null>(null);
   const yesButtonRef = useRef<HTMLButtonElement | null>(null);
+  const noButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (inviteToken) {
@@ -54,6 +58,21 @@ export default function AcceptPage() {
     setReady(true);
   }, [inviteToken]);
 
+  function setInitialFloatingFromDom() {
+    const panel = panelRef.current;
+    const noButton = noButtonRef.current;
+    if (!panel || !noButton) {
+      return;
+    }
+
+    const panelRect = panel.getBoundingClientRect();
+    const noRect = noButton.getBoundingClientRect();
+    setPosition({
+      left: Math.round(noRect.left - panelRect.left),
+      top: Math.round(noRect.top - panelRect.top),
+    });
+  }
+
   function randomizeNoButton(pointer?: { x: number; y: number }) {
     setPosition((prev) => {
       const panel = panelRef.current;
@@ -70,6 +89,7 @@ export default function AcceptPage() {
       let yesSafeZone:
         | { left: number; top: number; right: number; bottom: number }
         | null = null;
+
       if (yesButtonRef.current) {
         const yesRect = yesButtonRef.current.getBoundingClientRect();
         yesSafeZone = {
@@ -91,10 +111,7 @@ export default function AcceptPage() {
         const nextLeft = minLeft + Math.random() * (maxLeft - minLeft);
         const nextTop = minTop + Math.random() * (maxTop - minTop);
         const moved = Math.hypot(nextLeft - prev.left, nextTop - prev.top);
-        if (moved < MIN_MOVE_PX) {
-          continue;
-        }
-        if (moved > MAX_MOVE_PX) {
+        if (moved < MIN_MOVE_PX || moved > MAX_MOVE_PX) {
           continue;
         }
 
@@ -132,6 +149,7 @@ export default function AcceptPage() {
     const state = loadInvitationState();
     saveInvitationState({ ...state, accepted: true, noAttempts });
     incrementAcceptedCount();
+
     if (inviteToken) {
       router.push(`/result?invite=${encodeURIComponent(inviteToken)}`);
       return;
@@ -148,6 +166,14 @@ export default function AcceptPage() {
         : { x: event.clientX, y: event.clientY };
 
     setNoAttempts((prev) => prev + 1);
+
+    if (!noFloating) {
+      setInitialFloatingFromDom();
+      setNoFloating(true);
+      window.requestAnimationFrame(() => randomizeNoButton(pointer));
+      return;
+    }
+
     randomizeNoButton(pointer);
   }
 
@@ -176,27 +202,43 @@ export default function AcceptPage() {
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
+          overflow: "hidden",
         }}
       >
         <div style={{ fontSize: 56, lineHeight: 1 }}>💌</div>
         <h1 style={{ marginBottom: 8 }}>초대장이 도착했습니다.</h1>
         <p style={{ marginTop: 0, color: "var(--paper-muted)" }}>수락하시겠습니까?</p>
 
-        <div className="row" style={{ justifyContent: "center", marginTop: 10 }}>
+        <div
+          className="row"
+          style={{
+            justifyContent: "center",
+            marginTop: 10,
+            width: "100%",
+            maxWidth: 280,
+            display: "grid",
+            gridTemplateColumns: "140px 120px",
+            columnGap: 12,
+            alignItems: "center",
+          }}
+        >
           <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
             네 너무 좋아요
           </button>
 
+          {noFloating ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
+
           <button
+            ref={noButtonRef}
             className="btn-danger"
             style={{
               minWidth: NO_BUTTON_WIDTH,
               width: NO_BUTTON_WIDTH,
-              height: NO_BUTTON_HEIGHT,
-              position: "absolute",
-              left: `${position.left}px`,
-              top: `${position.top}px`,
-              transition: "left 160ms ease, top 160ms ease",
+              minHeight: NO_BUTTON_HEIGHT,
+              position: noFloating ? "absolute" : "static",
+              left: noFloating ? `${position.left}px` : undefined,
+              top: noFloating ? `${position.top}px` : undefined,
+              transition: noFloating ? "left 160ms ease, top 160ms ease" : undefined,
               opacity: 0.95,
             }}
             onMouseEnter={handleNoHover}
