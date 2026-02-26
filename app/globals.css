@@ -258,7 +258,7 @@ button {
   position: relative;
   margin-top: 8px;
   padding: 8px 0;
-  touch-action: pan-y;
+  touch-action: pan-x;
   overflow-x: hidden;
 }
 
