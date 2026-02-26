@@ -11,7 +11,7 @@ export default function AcceptPage() {
   const inviteToken = searchParams.get("invite");
   const [ready, setReady] = useState(false);
   const [noAttempts, setNoAttempts] = useState(0);
-  const [position, setPosition] = useState({ x: 58, y: 0 });
+  const [position, setPosition] = useState({ x: 58, y: 40 });
 
   useEffect(() => {
     if (inviteToken) {
@@ -36,7 +36,7 @@ export default function AcceptPage() {
   function randomizeNoButton() {
     setPosition({
       x: Math.round(Math.random() * 64),
-      y: Math.round(Math.random() * 120),
+      y: Math.round(Math.random() * 65) + 15,
     });
   }
 
@@ -97,7 +97,7 @@ export default function AcceptPage() {
               minWidth: 120,
               position: "absolute",
               right: `${position.x}%`,
-              top: `${54 + position.y / 10}%`,
+              top: `${position.y}%`,
               transition: "right 160ms ease, top 160ms ease",
               opacity: 0.95,
             }}
