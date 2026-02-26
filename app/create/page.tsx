@@ -3,7 +3,6 @@
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBannerAd from "@/components/TopBannerAd";
-import { buildInviteToken } from "@/lib/invite";
 import { incrementCreatedCount, initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
@@ -284,7 +283,7 @@ export default function CreatePage() {
     reader.readAsDataURL(file);
   }
 
-  function goAccept() {
+  async function goAccept() {
     const trimmedTitle = draft.title.trim();
     if (!trimmedTitle) {
       window.alert("제목을 입력해 주세요.");
@@ -299,12 +298,31 @@ export default function CreatePage() {
       return;
     }
 
-    saveInvitationState({ draft, accepted: false, noAttempts: 0 });
-    incrementCreatedCount();
-    const token = buildInviteToken(draft);
-    const nextUrl = `${window.location.origin}/accept?invite=${encodeURIComponent(token)}`;
-    setInviteUrl(nextUrl);
-    setInviteModalOpen(true);
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ draft }),
+      });
+      if (!res.ok) {
+        throw new Error("failed");
+      }
+
+      const data = (await res.json()) as { id: string };
+      if (!data?.id) {
+        throw new Error("invalid id");
+      }
+
+      saveInvitationState({ draft, accepted: false, noAttempts: 0 });
+      incrementCreatedCount();
+      const nextUrl = `${window.location.origin}/accept?invite=${encodeURIComponent(data.id)}`;
+      setInviteUrl(nextUrl);
+      setInviteModalOpen(true);
+    } catch {
+      window.alert("초대 링크 생성에 실패했습니다. 다시 시도해 주세요.");
+    }
   }
 
   async function copyInviteLink() {

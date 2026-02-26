@@ -2,8 +2,8 @@
 
 import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { parseInviteToken } from "@/lib/invite";
 import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { InvitationDraft } from "@/lib/types";
 
 const NO_BUTTON_WIDTH = 120;
 const NO_BUTTON_HEIGHT = 44;
@@ -39,27 +39,36 @@ export default function AcceptPage() {
   const noButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    try {
-      if (inviteToken) {
-        const parsed = parseInviteToken(inviteToken);
-        if (parsed) {
-          saveInvitationState({
-            draft: parsed.draft,
-            accepted: false,
-            noAttempts: 0,
-          });
-          setNoAttempts(0);
-          return;
+    async function init() {
+      try {
+        if (inviteToken) {
+          const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`);
+          if (res.ok) {
+            const payload = (await res.json()) as {
+              draft: InvitationDraft;
+            };
+            if (payload?.draft) {
+              saveInvitationState({
+                draft: payload.draft,
+                accepted: false,
+                noAttempts: 0,
+              });
+              setNoAttempts(0);
+              return;
+            }
+          }
         }
-      }
 
-      const state = loadInvitationState();
-      setNoAttempts(state.noAttempts);
-    } catch {
-      setNoAttempts(0);
-    } finally {
-      setReady(true);
+        const state = loadInvitationState();
+        setNoAttempts(state.noAttempts);
+      } catch {
+        setNoAttempts(0);
+      } finally {
+        setReady(true);
+      }
     }
+
+    init();
   }, [inviteToken]);
 
   function setInitialFloatingFromDom() {

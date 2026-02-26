@@ -4,6 +4,8 @@ node_modules/
 # Next.js build output and cache
 .next/
 out/
+data/
+public/uploads/
 
 # Logs
 npm-debug.log*

@@ -1,6 +1,7 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/create/page": "app/create/page.js",
   "/result/page": "app/result/page.js",
+  "/create/page": "app/create/page.js",
+  "/api/invitations/route": "app/api/invitations/route.js",
+  "/api/invitations/[id]/route": "app/api/invitations/[id]/route.js",
   "/accept/page": "app/accept/page.js"
 }

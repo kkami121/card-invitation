@@ -1,6 +1,16 @@
-import { InvitationDraft } from "@/lib/types";
+import { DEFAULT_THEME_KEY, THEMES } from "@/lib/themes";
+import { InvitationDraft, OccasionKey } from "@/lib/types";
+
+type SharedDraft = Omit<InvitationDraft, "imageUrl">;
 
 type InvitePayload = {
+  v: 1;
+  id: string;
+  createdAt: number;
+  draft: SharedDraft;
+};
+
+type ParsedInvitePayload = {
   v: 1;
   id: string;
   createdAt: number;
@@ -38,18 +48,19 @@ function createInviteId(): string {
 }
 
 export function buildInviteToken(draft: InvitationDraft): string {
+  const { imageUrl: _ignoredImageUrl, ...sharedDraft } = draft;
   const payload: InvitePayload = {
     v: 1,
     id: createInviteId(),
     createdAt: Date.now(),
-    draft,
+    draft: sharedDraft,
   };
   const json = JSON.stringify(payload);
   const bytes = new TextEncoder().encode(json);
   return toBase64Url(bytes);
 }
 
-export function parseInviteToken(token: string): InvitePayload | null {
+export function parseInviteToken(token: string): ParsedInvitePayload | null {
   const bytes = fromBase64Url(token);
   if (!bytes) {
     return null;
@@ -62,14 +73,14 @@ export function parseInviteToken(token: string): InvitePayload | null {
       return null;
     }
 
-    const draft = parsed.draft as Partial<InvitationDraft>;
+    const draft = parsed.draft as Partial<SharedDraft>;
+    const themeKeyCandidate = typeof draft.themeKey === "string" ? (draft.themeKey as OccasionKey) : null;
+    const themeKey = themeKeyCandidate && themeKeyCandidate in THEMES ? themeKeyCandidate : DEFAULT_THEME_KEY;
     if (
-      typeof draft.themeKey !== "string" ||
       typeof draft.title !== "string" ||
       typeof draft.date !== "string" ||
       typeof draft.time !== "string" ||
-      typeof draft.place !== "string" ||
-      typeof draft.imageUrl !== "string"
+      typeof draft.place !== "string"
     ) {
       return null;
     }
@@ -78,7 +89,14 @@ export function parseInviteToken(token: string): InvitePayload | null {
       v: 1,
       id: parsed.id,
       createdAt: parsed.createdAt,
-      draft: draft as InvitationDraft,
+      draft: {
+        themeKey,
+        title: draft.title,
+        date: draft.date,
+        time: draft.time,
+        place: draft.place,
+        imageUrl: THEMES[themeKey].defaultImageUrl,
+      },
     };
   } catch {
     return null;
