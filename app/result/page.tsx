@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import InvitationCard from "@/components/InvitationCard";
+import TopBannerAd from "@/components/TopBannerAd";
+import { THEMES } from "@/lib/themes";
 import { initialInvitationState, loadInvitationState } from "@/lib/storage";
+import styles from "./result.module.css";
 
 export default function ResultPage() {
   const router = useRouter();
@@ -35,7 +38,8 @@ export default function ResultPage() {
   }
 
   return (
-    <main className="mobile-shell stack">
+    <main className={`mobile-shell stack ${styles.resultShell}`}>
+      <TopBannerAd className="ad-top" accentColor={THEMES[state.draft.themeKey].accent} />
       <InvitationCard draft={state.draft} />
     </main>
   );
