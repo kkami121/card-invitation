@@ -36,11 +36,6 @@ export default function ResultPage() {
 
   return (
     <main className="mobile-shell stack">
-      <section className="paper-panel" style={{ padding: 16 }}>
-        <h2 style={{ margin: 0 }}>수락된 초대장</h2>
-        <p style={{ marginBottom: 0, color: "var(--paper-muted)" }}>첫 번째 페이지에서 만든 카드가 그대로 표시됩니다.</p>
-      </section>
-
       <InvitationCard draft={state.draft} />
     </main>
   );
