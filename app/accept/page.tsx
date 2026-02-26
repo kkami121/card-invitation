@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, type TouchEvent, useEffect, useRef, useState } from "react";
+import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseInviteToken } from "@/lib/invite";
 import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
@@ -165,24 +165,28 @@ export default function AcceptPage() {
     router.push("/result");
   }
 
-  function handleNoHover(event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>) {
-    const pointer =
-      "touches" in event
-        ? event.touches[0]
-          ? { x: event.touches[0].clientX, y: event.touches[0].clientY }
-          : undefined
-        : { x: event.clientX, y: event.clientY };
-
+  function triggerNoEscape(pointer?: { x: number; y: number }) {
     setNoAttempts((prev) => prev + 1);
 
     if (!noFloating) {
       setInitialFloatingFromDom();
       setNoFloating(true);
-      window.requestAnimationFrame(() => randomizeNoButton(pointer));
-      return;
     }
 
     randomizeNoButton(pointer);
+  }
+
+  function handleNoHover(event: MouseEvent<HTMLButtonElement>) {
+    const pointer = { x: event.clientX, y: event.clientY };
+    triggerNoEscape(pointer);
+  }
+
+  function handleNoPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (event.pointerType !== "mouse") {
+      event.preventDefault();
+    }
+    const pointer = { x: event.clientX, y: event.clientY };
+    triggerNoEscape(pointer);
   }
 
   if (!ready) {
@@ -240,11 +244,12 @@ export default function AcceptPage() {
               position: noFloating ? "absolute" : "static",
               left: noFloating ? `${position.left}px` : undefined,
               top: noFloating ? `${position.top}px` : undefined,
-              transition: noFloating ? "left 160ms ease, top 160ms ease" : undefined,
+              transition: noFloating ? "left 10ms ease-out, top 10ms ease-out" : undefined,
+              touchAction: "none",
               opacity: 0.95,
             }}
             onMouseEnter={handleNoHover}
-            onTouchStart={handleNoHover}
+            onPointerDown={handleNoPointerDown}
           >
             아니요
           </button>
