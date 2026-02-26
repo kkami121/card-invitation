@@ -14,9 +14,14 @@ export default function ResultPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const next = loadInvitationState();
-    setState(next);
-    setReady(true);
+    try {
+      const next = loadInvitationState();
+      setState(next);
+    } catch {
+      setState(initialInvitationState);
+    } finally {
+      setReady(true);
+    }
   }, []);
 
   if (!ready) {

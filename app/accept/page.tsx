@@ -39,23 +39,27 @@ export default function AcceptPage() {
   const noButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    if (inviteToken) {
-      const parsed = parseInviteToken(inviteToken);
-      if (parsed) {
-        saveInvitationState({
-          draft: parsed.draft,
-          accepted: false,
-          noAttempts: 0,
-        });
-        setNoAttempts(0);
-        setReady(true);
-        return;
+    try {
+      if (inviteToken) {
+        const parsed = parseInviteToken(inviteToken);
+        if (parsed) {
+          saveInvitationState({
+            draft: parsed.draft,
+            accepted: false,
+            noAttempts: 0,
+          });
+          setNoAttempts(0);
+          return;
+        }
       }
-    }
 
-    const state = loadInvitationState();
-    setNoAttempts(state.noAttempts);
-    setReady(true);
+      const state = loadInvitationState();
+      setNoAttempts(state.noAttempts);
+    } catch {
+      setNoAttempts(0);
+    } finally {
+      setReady(true);
+    }
   }, [inviteToken]);
 
   function setInitialFloatingFromDom() {
@@ -146,9 +150,13 @@ export default function AcceptPage() {
   }
 
   function handleYes() {
-    const state = loadInvitationState();
-    saveInvitationState({ ...state, accepted: true, noAttempts });
-    incrementAcceptedCount();
+    try {
+      const state = loadInvitationState();
+      saveInvitationState({ ...state, accepted: true, noAttempts });
+      incrementAcceptedCount();
+    } catch {
+      // Ignore storage errors and still continue navigation.
+    }
 
     if (inviteToken) {
       router.push(`/result?invite=${encodeURIComponent(inviteToken)}`);

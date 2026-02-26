@@ -47,8 +47,13 @@
 }
 
 .create_inviteButtons__N_Nq_ {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 8px;
   gap: 8px;
+}
+
+.create_inviteButtons__N_Nq_ button:last-child {
+  grid-column: 1 / -1;
 }
 
