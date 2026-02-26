@@ -37,15 +37,6 @@
   font-size: 0.9rem;
 }
 
-.create_inviteInput__uvTlx {
-  width: 100%;
-  border: 1px solid #ddd2c2;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.86rem;
-  margin-bottom: 10px;
-}
-
 .create_inviteButtons__N_Nq_ {
   display: grid;
   grid-template-columns: 1fr 1fr;

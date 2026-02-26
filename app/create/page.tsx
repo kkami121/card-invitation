@@ -339,7 +339,6 @@ export default function CreatePage() {
       try {
         await navigator.share({
           title: "초대장 링크",
-          text: "초대장을 확인해 주세요.",
           url: inviteUrl,
         });
         return;
@@ -459,8 +458,7 @@ export default function CreatePage() {
         <div className={styles.inviteModalBackdrop} onClick={() => setInviteModalOpen(false)} role="presentation">
           <section className={styles.inviteModal} onClick={(event) => event.stopPropagation()}>
             <h3 className={styles.inviteModalTitle}>초대 링크가 생성되었습니다</h3>
-            <p className={styles.inviteModalDesc}>아래 링크를 공유하면 상대가 초대장을 수락할 수 있어요.</p>
-            <input className={styles.inviteInput} value={inviteUrl} readOnly />
+            <p className={styles.inviteModalDesc}>링크를 공유하면 상대가 초대장을 수락할 수 있어요.</p>
             <div className={styles.inviteButtons}>
               <button type="button" className="btn-secondary" onClick={copyInviteLink}>
                 링크 복사

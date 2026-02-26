@@ -46,6 +46,13 @@ export default function ResultPage() {
     <main className={`mobile-shell stack ${styles.resultShell}`}>
       <TopBannerAd className="ad-top" accentColor={THEMES[state.draft.themeKey].accent} />
       <InvitationCard draft={state.draft} />
+      <button
+        className="btn-primary"
+        style={{ width: "100%", background: THEMES[state.draft.themeKey].accent }}
+        onClick={() => router.push("/create")}
+      >
+        나도 초대장 만들기
+      </button>
     </main>
   );
 }
