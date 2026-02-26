@@ -185,12 +185,6 @@ export default function AcceptPage() {
     randomizeNoButton(pointer);
   }
 
-  function handleNoClick() {
-    const state = loadInvitationState();
-    saveInvitationState({ ...state, accepted: false, noAttempts });
-    router.push("/create");
-  }
-
   if (!ready) {
     return <main className="mobile-shell center">불러오는 중...</main>;
   }
@@ -251,7 +245,6 @@ export default function AcceptPage() {
             }}
             onMouseEnter={handleNoHover}
             onTouchStart={handleNoHover}
-            onClick={handleNoClick}
           >
             아니요
           </button>
