@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
@@ -25,7 +25,7 @@ function overlaps(
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
-export default function AcceptPage() {
+function AcceptPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("invite");
@@ -270,5 +270,13 @@ export default function AcceptPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function AcceptPage() {
+  return (
+    <Suspense fallback={<main className="mobile-shell center">Loading...</main>}>
+      <AcceptPageContent />
+    </Suspense>
   );
 }
