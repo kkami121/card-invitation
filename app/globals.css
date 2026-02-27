@@ -363,7 +363,7 @@ button {
 
 .ad-modal {
   width: 100%;
-  max-width: 360px;
+  max-width: 320px;
   background: #fffdf8;
   border: 1px solid var(--line);
   border-radius: 14px;
