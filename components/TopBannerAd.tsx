@@ -11,7 +11,7 @@ type Props = {
 const defaultImageUrl = process.env.NEXT_PUBLIC_TOP_AD_IMAGE_URL;
 const defaultLinkUrl = process.env.NEXT_PUBLIC_TOP_AD_LINK_URL;
 const defaultAlt = process.env.NEXT_PUBLIC_TOP_AD_ALT ?? "Top banner ad";
-const contactEmail = process.env.NEXT_PUBLIC_AD_CONTACT_EMAIL ?? "kkami110311@gmail.com";
+const contactEmail = process.env.NEXT_PUBLIC_AD_CONTACT_EMAIL ?? "coderstudio404@gmail.com";
 
 export default function TopBannerAd({ className, accentColor }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
