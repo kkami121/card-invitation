@@ -23,6 +23,7 @@ export type InvitationTheme = {
 
 export type InvitationDraft = {
   themeKey: OccasionKey;
+  emojis: string;
   title: string;
   date: string;
   time: string;

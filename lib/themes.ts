@@ -3,11 +3,11 @@
 export const THEMES: Record<OccasionKey, InvitationTheme> = {
   promise: {
     key: "promise",
-    label: "약속",
+    label: "친구 약속",
     title: "Let's catch up!",
     emojis: ["👋", "🥐", "☕", "🍣", "📍"],
     titleClassName: "font-script",
-    accent: "#ffae00",
+    accent: "#c98900",
     defaultImageUrl: "/theme-images/promise.jpg",
   },
   "weekend-date": {
@@ -16,16 +16,16 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Weekend Date!",
     emojis: ["💑", "🌇", "🍜", "🎬", "🚉"],
     titleClassName: "font-script",
-    accent: "#cc4c1e",
+    accent: "#c23400",
     defaultImageUrl: "/theme-images/weekend-date.jpg",
   },
   birthday: {
     key: "birthday",
     label: "생일",
     title: "Happy Birthday!",
-    emojis: ["🎉", "🎂", "🎈", "🥳", "🎁"],
+    emojis: ["🎉", "🍰", "🎈", "🥳", "🎁"],
     titleClassName: "font-script",
-    accent: "#c42828",
+    accent: "#ce0000",
     defaultImageUrl: "/theme-images/birthday.jpg",
   },
   "childrens-day": {
@@ -34,7 +34,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Children's Day!",
     emojis: ["🧒", "🎠", "👑", "🍭", "🎁"],
     titleClassName: "font-script",
-    accent: "#ffc60b",
+    accent: "#ebbf30",
     defaultImageUrl: "/theme-images/childrens-day.jpg",
   },
   "samgyeopsal-day": {
@@ -43,7 +43,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Samgyeopsal Day!",
     emojis: ["🥓", "🔥", "🥬", "🧄", "😋"],
     titleClassName: "font-script",
-    accent: "#8b4e2f",
+    accent: "#97502c",
     defaultImageUrl: "/theme-images/samgyeopsal-day.jpg",
   },
   "white-day": {
@@ -52,7 +52,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Happy White Day!",
     emojis: ["🤍", "🍬", "💌", "🍭", "🤍"],
     titleClassName: "font-script",
-    accent: "#5e86b5",
+    accent: "#6b9cd4",
     defaultImageUrl: "/theme-images/white-day.jpg",
   },
   valentine: {
@@ -61,7 +61,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Happy Valentine's Day!",
     emojis: ["🤎", "🍫", "💕", "🍫", "💖"],
     titleClassName: "font-script",
-    accent: "#b63b68",
+    accent: "#ca4d7b",
     defaultImageUrl: "/theme-images/valentine.jpg",
   },
   christmas: {
@@ -88,7 +88,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Happy Lunar New Year!",
     emojis: ["🧧", "🐉", "🎊", "🙇‍♀️", "🌅"],
     titleClassName: "font-script",
-    accent: "#9f4a1f",
+    accent: "#755c50",
     defaultImageUrl: "/theme-images/lunar-new-year.jpg",
   },
   chuseok: {
@@ -97,7 +97,7 @@ export const THEMES: Record<OccasionKey, InvitationTheme> = {
     title: "Happy Chuseok!",
     emojis: ["🌕", "🌾", "🍂", "🥮", "🏮"],
     titleClassName: "font-script",
-    accent: "#8f6a2a",
+    accent: "#74654a",
     defaultImageUrl: "/theme-images/chuseok.jpg",
   },
 };

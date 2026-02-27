@@ -3,6 +3,7 @@
 import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
 
 const NO_BUTTON_WIDTH = 120;
@@ -48,8 +49,12 @@ export default function AcceptPage() {
               draft: InvitationDraft;
             };
             if (payload?.draft) {
+              const theme = THEMES[payload.draft.themeKey] ?? THEMES.promise;
               saveInvitationState({
-                draft: payload.draft,
+                draft: {
+                  ...payload.draft,
+                  emojis: payload.draft.emojis || theme.emojis.join(" "),
+                },
                 accepted: false,
                 noAttempts: 0,
               });

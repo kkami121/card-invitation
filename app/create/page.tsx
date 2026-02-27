@@ -85,6 +85,7 @@ export default function CreatePage() {
   const [draft, setDraft] = useState<InvitationDraft>(() => ({
     ...initialInvitationState.draft,
     themeKey: "promise",
+    emojis: THEMES.promise.emojis.join(" "),
     title: THEMES.promise.title,
     date: formatDate(now),
     time: formatTime(now),
@@ -192,6 +193,7 @@ export default function CreatePage() {
     setDraft((prev) => ({
       ...prev,
       themeKey: nextTheme.key,
+      emojis: nextTheme.emojis.join(" "),
       title: nextTheme.title,
       date: resolveThemeDate(nextTheme.key, base),
       time: nextTheme.key === "promise" ? formatTime(base) : prev.time,
@@ -419,7 +421,13 @@ export default function CreatePage() {
             <h3 className="theme-title">{theme.label}</h3>
 
             <div style={{ textAlign: "center", marginBottom: 10 }}>
-              <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{theme.emojis.join(" ")}</p>
+              <input
+                className="editable-card-input"
+                value={draft.emojis}
+                onChange={(e) => updateField("emojis", e.target.value)}
+                placeholder={theme.emojis.join(" ")}
+                style={{ textAlign: "center", fontSize: 26, letterSpacing: 3, paddingTop: 2, paddingBottom: 2, borderBottom: 0 }}
+              />
               <input
                 ref={titleInputRef}
                 className={`editable-card-input title ${theme.titleClassName}`}

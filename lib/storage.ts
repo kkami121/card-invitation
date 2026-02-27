@@ -17,6 +17,7 @@ const initialMetrics: InvitationMetrics = {
 export const initialInvitationState: InvitationState = {
   draft: {
     themeKey: DEFAULT_THEME_KEY,
+    emojis: THEMES[DEFAULT_THEME_KEY].emojis.join(" "),
     title: THEMES[DEFAULT_THEME_KEY].title,
     date: "2026-02-14",
     time: "13:30",

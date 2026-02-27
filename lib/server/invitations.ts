@@ -63,6 +63,7 @@ export async function createInvitation(draft: InvitationDraft): Promise<StoredIn
     createdAt: Date.now(),
     draft: {
       themeKey: draft.themeKey,
+      emojis: draft.emojis || theme.emojis.join(" "),
       title: draft.title,
       date: draft.date,
       time: draft.time,
@@ -80,4 +81,3 @@ export async function getInvitation(id: string): Promise<StoredInvitation | null
   const store = await readStore();
   return store[id] ?? null;
 }
-

@@ -77,6 +77,7 @@ export function parseInviteToken(token: string): ParsedInvitePayload | null {
     const themeKeyCandidate = typeof draft.themeKey === "string" ? (draft.themeKey as OccasionKey) : null;
     const themeKey = themeKeyCandidate && themeKeyCandidate in THEMES ? themeKeyCandidate : DEFAULT_THEME_KEY;
     if (
+      typeof draft.emojis !== "string" ||
       typeof draft.title !== "string" ||
       typeof draft.date !== "string" ||
       typeof draft.time !== "string" ||
@@ -91,6 +92,7 @@ export function parseInviteToken(token: string): ParsedInvitePayload | null {
       createdAt: parsed.createdAt,
       draft: {
         themeKey,
+        emojis: draft.emojis,
         title: draft.title,
         date: draft.date,
         time: draft.time,
