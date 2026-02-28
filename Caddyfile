@@ -1,0 +1,30 @@
+{
+  auto_https disable_redirects
+}
+
+http://{$DOMAIN} {
+  redir https://{$DOMAIN}{uri}
+}
+
+{$DOMAIN} {
+  encode gzip zstd
+
+  @waiting path {$WAITING_ROOM_PATH:/__waiting_disabled__}
+  handle @waiting {
+    header Cache-Control "no-store"
+    header Retry-After "20"
+    respond "Service is temporarily busy. Please try again shortly." 503
+  }
+
+  @api path /api/* /ws/*
+  @static path /favicon.ico /robots.txt /sitemap.xml /manifest.webmanifest /apple-touch-icon.png /apple-touch-icon-precomposed.png
+  header @api Cache-Control "no-store"
+  header @static Cache-Control "public, max-age=3600"
+
+  reverse_proxy cardinvitation:3000
+}
+
+http://{$HOST_IP}, http://localhost {
+  encode gzip zstd
+  reverse_proxy cardinvitation:3000
+}
