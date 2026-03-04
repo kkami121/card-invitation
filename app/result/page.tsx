@@ -1,28 +1,50 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import InvitationCard from "@/components/InvitationCard";
 import TopBannerAd from "@/components/TopBannerAd";
-import { THEMES } from "@/lib/themes";
 import { initialInvitationState, loadInvitationState } from "@/lib/storage";
+import { THEMES } from "@/lib/themes";
+import { InvitationDraft } from "@/lib/types";
 import styles from "./result.module.css";
 
-export default function ResultPage() {
+function ResultPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite");
   const [state, setState] = useState(initialInvitationState);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const next = loadInvitationState();
-      setState(next);
-    } catch {
-      setState(initialInvitationState);
-    } finally {
-      setReady(true);
+    async function init() {
+      try {
+        if (inviteToken) {
+          const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`, { cache: "no-store" });
+          if (res.ok) {
+            const payload = (await res.json()) as { draft?: InvitationDraft };
+            if (payload?.draft) {
+              setState({
+                draft: payload.draft,
+                accepted: true,
+                noAttempts: 0,
+              });
+              return;
+            }
+          }
+        }
+
+        const next = loadInvitationState();
+        setState(next);
+      } catch {
+        setState(initialInvitationState);
+      } finally {
+        setReady(true);
+      }
     }
-  }, []);
+
+    init();
+  }, [inviteToken]);
 
   if (!ready) {
     return <main className="mobile-shell center">불러오는 중...</main>;
@@ -54,5 +76,13 @@ export default function ResultPage() {
         나도 초대장 만들기
       </button>
     </main>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense fallback={<main className="mobile-shell center">불러오는 중...</main>}>
+      <ResultPageContent />
+    </Suspense>
   );
 }

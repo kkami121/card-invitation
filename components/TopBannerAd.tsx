@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { loadInvitationMetrics } from "@/lib/storage";
 
 type Props = {
   className?: string;
@@ -19,10 +18,19 @@ export default function TopBannerAd({ className, accentColor }: Props) {
   const [createdCount, setCreatedCount] = useState(0);
   const [acceptedCount, setAcceptedCount] = useState(0);
 
-  function openModal() {
-    const metrics = loadInvitationMetrics();
-    setCreatedCount(metrics.createdCount);
-    setAcceptedCount(metrics.acceptedCount);
+  async function openModal() {
+    try {
+      const response = await fetch("/api/stats", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error("failed");
+      }
+      const metrics = (await response.json()) as { createdCount?: number; acceptedCount?: number };
+      setCreatedCount(metrics.createdCount ?? 0);
+      setAcceptedCount(metrics.acceptedCount ?? 0);
+    } catch {
+      setCreatedCount(0);
+      setAcceptedCount(0);
+    }
     setIsModalOpen(true);
   }
 

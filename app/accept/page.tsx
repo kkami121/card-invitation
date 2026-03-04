@@ -2,7 +2,7 @@
 
 import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { incrementAcceptedCount, loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
 
@@ -163,13 +163,22 @@ function AcceptPageContent() {
     });
   }
 
-  function handleYes() {
+  async function handleYes() {
     try {
       const state = loadInvitationState();
       saveInvitationState({ ...state, accepted: true, noAttempts });
-      incrementAcceptedCount();
     } catch {
       // Ignore storage errors and still continue navigation.
+    }
+
+    if (inviteToken) {
+      try {
+        await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}/accept`, {
+          method: "POST",
+        });
+      } catch {
+        // Ignore accept metric errors and still continue navigation.
+      }
     }
 
     if (inviteToken) {

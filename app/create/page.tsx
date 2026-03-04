@@ -3,7 +3,7 @@
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBannerAd from "@/components/TopBannerAd";
-import { incrementCreatedCount, initialInvitationState, saveInvitationState } from "@/lib/storage";
+import { initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
 import styles from "./create.module.css";
@@ -11,6 +11,9 @@ import styles from "./create.module.css";
 const SWIPE_THRESHOLD = 70;
 const ANIMATION_MS = 220;
 const PLACE_PLACEHOLDERS = ["홍대입구역", "성수역", "여의도한강공원", "잠실 롯데월드몰", "광화문 광장"];
+const CLIENT_IMAGE_MAX_SIDE = 1280;
+const CLIENT_IMAGE_QUALITY = 0.82;
+const MAX_UPLOAD_FILE_BYTES = 12 * 1024 * 1024;
 
 const THEME_MONTH_DAY: Partial<Record<OccasionKey, { month: number; day: number }>> = {
   "childrens-day": { month: 5, day: 5 },
@@ -69,6 +72,124 @@ function resolveThemeDate(themeKey: OccasionKey, base: Date): string {
     return formatDate(base);
   }
   return formatDate(getNextDateFromMonthDay(base, monthDay.month, monthDay.day));
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("invalid file reader result"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error("invalid blob reader result"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("failed to read blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadImageFromFile(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("failed to load image"));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function isHeicLikeFile(file: File): boolean {
+  const type = file.type.toLowerCase();
+  const name = file.name.toLowerCase();
+  return type.includes("heic") || type.includes("heif") || name.endsWith(".heic") || name.endsWith(".heif");
+}
+
+async function normalizeUploadFile(file: File): Promise<File> {
+  if (!isHeicLikeFile(file)) {
+    return file;
+  }
+
+  try {
+    const mod = await import("heic2any");
+    const converter = mod.default as (options: { blob: Blob; toType: string; quality: number }) => Promise<Blob | Blob[]>;
+    const converted = await converter({
+      blob: file,
+      toType: "image/jpeg",
+      quality: 0.9,
+    });
+
+    const convertedBlob = Array.isArray(converted) ? converted[0] : converted;
+    if (!convertedBlob) {
+      throw new Error("heic-convert-empty");
+    }
+
+    return new File([convertedBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+  } catch {
+    throw new Error("unsupported-image-type");
+  }
+}
+
+async function compressImageFile(file: File): Promise<string> {
+  const normalizedFile = await normalizeUploadFile(file);
+  if (!normalizedFile.type.startsWith("image/")) {
+    throw new Error("unsupported-image-type");
+  }
+
+  const image = await loadImageFromFile(normalizedFile);
+  const longest = Math.max(image.naturalWidth, image.naturalHeight, 1);
+  const ratio = Math.min(1, CLIENT_IMAGE_MAX_SIDE / longest);
+  const width = Math.max(1, Math.round(image.naturalWidth * ratio));
+  const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("canvas-unavailable");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const webpBlob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/webp", CLIENT_IMAGE_QUALITY);
+  });
+
+  const blob =
+    webpBlob ??
+    (await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", CLIENT_IMAGE_QUALITY);
+    }));
+
+    if (!blob) {
+      throw new Error("blob-conversion-failed");
+  }
+
+  return blobToDataUrl(blob);
 }
 
 function daysUntilTheme(themeKey: OccasionKey, base: Date): number {
@@ -272,17 +393,22 @@ export default function CreatePage() {
     pointerStartX.current = null;
   }
 
-  function handleFileChange(file: File | null) {
+  async function handleFileChange(file: File | null) {
     if (!file) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : theme.defaultImageUrl;
-      updateField("imageUrl", dataUrl);
-    };
-    reader.readAsDataURL(file);
+    if (file.size > MAX_UPLOAD_FILE_BYTES) {
+      window.alert("이미지 파일이 너무 큽니다. 12MB 이하 파일을 선택해 주세요.");
+      return;
+    }
+
+    try {
+      const dataUrl = await compressImageFile(file);
+      updateField("imageUrl", dataUrl || theme.defaultImageUrl);
+    } catch {
+      window.alert("이미지 형식이 지원되지 않거나 변환에 실패했습니다. (HEIC는 변환 후 재시도) 다른 사진으로 다시 시도해 주세요.");
+    }
   }
 
   async function goAccept() {
@@ -309,7 +435,17 @@ export default function CreatePage() {
         body: JSON.stringify({ draft }),
       });
       if (!res.ok) {
-        throw new Error("failed");
+        let message = "failed";
+        if (res.status === 413) {
+          throw new Error("payload-too-large");
+        }
+        try {
+          const errorData = (await res.json()) as { message?: string };
+          message = errorData?.message || message;
+        } catch {
+          // ignore parse errors
+        }
+        throw new Error(message);
       }
 
       const data = (await res.json()) as { id: string };
@@ -318,11 +454,23 @@ export default function CreatePage() {
       }
 
       saveInvitationState({ draft, accepted: false, noAttempts: 0 });
-      incrementCreatedCount();
       const nextUrl = `${window.location.origin}/accept?invite=${encodeURIComponent(data.id)}`;
       setInviteUrl(nextUrl);
       setInviteModalOpen(true);
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("unsupported image")) {
+        window.alert("이미지 형식이 지원되지 않습니다. JPG, PNG, WebP 이미지를 다시 선택해 주세요.");
+        return;
+      }
+      if (message.includes("image optimize")) {
+        window.alert("이미지 처리에 실패했습니다. 다른 이미지를 선택해 다시 시도해 주세요.");
+        return;
+      }
+      if (message.includes("payload-too-large")) {
+        window.alert("사진 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.");
+        return;
+      }
       window.alert("초대 링크 생성에 실패했습니다. 다시 시도해 주세요.");
     }
   }

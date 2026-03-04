@@ -42,6 +42,9 @@ services:
       NODE_ENV: production
       PORT: 3000
     command: npm run start -- -H 0.0.0.0 -p 3000
+    volumes:
+      - ./data:/app/data
+      - ./public/uploads:/app/public/uploads
 
 volumes:
   duckdns_config:

@@ -57,7 +57,22 @@ export function saveInvitationState(nextState: InvitationState): void {
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+  const normalizedState: InvitationState = {
+    ...nextState,
+    draft: {
+      ...nextState.draft,
+      // Prevent quota issues on mobile Safari/Chrome by not persisting huge base64 images.
+      imageUrl: nextState.draft.imageUrl.startsWith("data:image/")
+        ? (THEMES[nextState.draft.themeKey]?.defaultImageUrl ?? defaultImageDataUrl)
+        : nextState.draft.imageUrl,
+    },
+  };
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedState));
+  } catch {
+    // If storage quota is exceeded, keep the app usable without persistence.
+  }
 }
 
 export function loadInvitationMetrics(): InvitationMetrics {
@@ -85,7 +100,11 @@ function saveInvitationMetrics(next: InvitationMetrics): void {
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.setItem(METRICS_KEY, JSON.stringify(next));
+  try {
+    window.localStorage.setItem(METRICS_KEY, JSON.stringify(next));
+  } catch {
+    // Ignore metrics persistence failures.
+  }
 }
 
 export function incrementCreatedCount(): void {
