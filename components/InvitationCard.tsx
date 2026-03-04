@@ -6,6 +6,7 @@ import { InvitationDraft } from "@/lib/types";
 
 type Props = {
   draft: InvitationDraft;
+  photoNoticeText?: string;
 };
 
 const WEEKDAY_LABELS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
@@ -46,7 +47,7 @@ function formatDisplayTime(raw: string): string | null {
   return `${meridiem} ${String(hour12).padStart(2, "0")}시 ${String(minute).padStart(2, "0")}분`;
 }
 
-export default function InvitationCard({ draft }: Props) {
+export default function InvitationCard({ draft, photoNoticeText }: Props) {
   const theme = THEMES[draft.themeKey];
   const formattedDate = draft.date ? formatDisplayDate(draft.date) : null;
   const formattedTime = draft.time ? formatDisplayTime(draft.time) : null;
@@ -104,6 +105,11 @@ export default function InvitationCard({ draft }: Props) {
       <div className="polaroid" style={{ marginTop: 5 }}>
         <img src={imageSrc} alt="초대장 사진" onError={handleImageError} />
       </div>
+      {photoNoticeText ? (
+        <p className="photo-upload-hint" style={{ textAlign: "center", marginTop: 6 }}>
+          {photoNoticeText}
+        </p>
+      ) : null}
     </article>
   );
 }

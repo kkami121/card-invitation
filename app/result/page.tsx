@@ -67,7 +67,7 @@ function ResultPageContent() {
   return (
     <main className={`mobile-shell stack ${styles.resultShell}`}>
       <TopBannerAd className="ad-top" accentColor={THEMES[state.draft.themeKey].accent} />
-      <InvitationCard draft={state.draft} />
+      <InvitationCard draft={state.draft} photoNoticeText="초대장 정보 및 해당 사진은 약속 날짜 이후 전부 삭제됩니다." />
       <button
         className="btn-primary"
         style={{ width: "100%", background: THEMES[state.draft.themeKey].accent }}

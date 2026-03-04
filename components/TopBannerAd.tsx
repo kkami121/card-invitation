@@ -11,6 +11,7 @@ const defaultImageUrl = process.env.NEXT_PUBLIC_TOP_AD_IMAGE_URL;
 const defaultLinkUrl = process.env.NEXT_PUBLIC_TOP_AD_LINK_URL;
 const defaultAlt = process.env.NEXT_PUBLIC_TOP_AD_ALT ?? "Top banner ad";
 const contactEmail = process.env.NEXT_PUBLIC_AD_CONTACT_EMAIL ?? "coderstudio404@gmail.com";
+const numberFormatter = new Intl.NumberFormat("ko-KR");
 
 export default function TopBannerAd({ className, accentColor }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,8 +78,8 @@ export default function TopBannerAd({ className, accentColor }: Props) {
             >
               <h3 className="ad-modal-title">광고 문의</h3>
              
-              <p className="ad-modal-line"><strong>생성된 초대장 수:</strong> {createdCount}</p>
-              <p className="ad-modal-line"><strong>초대장을 수락한 사용자 수:</strong> {acceptedCount}</p>
+              <p className="ad-modal-line"><strong>생성된 초대장 수:</strong> {numberFormatter.format(createdCount)}</p>
+              <p className="ad-modal-line"><strong>초대장을 수락한 사용자 수:</strong> {numberFormatter.format(acceptedCount)}</p>
               <p className="ad-modal-line">
                 <strong>Email:</strong>{" "}
                 <button type="button" className="ad-email-copy" onClick={handleCopyEmail}>
