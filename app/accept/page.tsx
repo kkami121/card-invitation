@@ -31,6 +31,7 @@ function AcceptPageContent() {
   const inviteToken = searchParams.get("invite");
 
   const [ready, setReady] = useState(false);
+  const [invitationMissing, setInvitationMissing] = useState(false);
   const [noAttempts, setNoAttempts] = useState(0);
   const [noFloating, setNoFloating] = useState(false);
   const [position, setPosition] = useState({ left: 0, top: 0 });
@@ -43,11 +44,9 @@ function AcceptPageContent() {
     async function init() {
       try {
         if (inviteToken) {
-          const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`);
+          const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`, { cache: "no-store" });
           if (res.ok) {
-            const payload = (await res.json()) as {
-              draft: InvitationDraft;
-            };
+            const payload = (await res.json()) as { draft?: InvitationDraft };
             if (payload?.draft) {
               const theme = THEMES[payload.draft.themeKey] ?? THEMES.promise;
               saveInvitationState({
@@ -62,11 +61,19 @@ function AcceptPageContent() {
               return;
             }
           }
+          setInvitationMissing(true);
+          setNoAttempts(0);
+          return;
         }
 
         const state = loadInvitationState();
         setNoAttempts(state.noAttempts);
       } catch {
+        if (inviteToken) {
+          setInvitationMissing(true);
+          setNoAttempts(0);
+          return;
+        }
         setNoAttempts(0);
       } finally {
         setReady(true);
@@ -104,10 +111,7 @@ function AcceptPageContent() {
       const maxTop = Math.max(minTop, panel.clientHeight - NO_BUTTON_HEIGHT - EDGE_PADDING);
       const panelRect = panel.getBoundingClientRect();
 
-      let yesSafeZone:
-        | { left: number; top: number; right: number; bottom: number }
-        | null = null;
-
+      let yesSafeZone: { left: number; top: number; right: number; bottom: number } | null = null;
       if (yesButtonRef.current) {
         const yesRect = yesButtonRef.current.getBoundingClientRect();
         yesSafeZone = {
@@ -179,12 +183,10 @@ function AcceptPageContent() {
       } catch {
         // Ignore accept metric errors and still continue navigation.
       }
-    }
-
-    if (inviteToken) {
       router.push(`/result?invite=${encodeURIComponent(inviteToken)}`);
       return;
     }
+
     router.push("/result");
   }
 
@@ -200,20 +202,32 @@ function AcceptPageContent() {
   }
 
   function handleNoHover(event: MouseEvent<HTMLButtonElement>) {
-    const pointer = { x: event.clientX, y: event.clientY };
-    triggerNoEscape(pointer);
+    triggerNoEscape({ x: event.clientX, y: event.clientY });
   }
 
   function handleNoPointerDown(event: PointerEvent<HTMLButtonElement>) {
     if (event.pointerType !== "mouse") {
       event.preventDefault();
     }
-    const pointer = { x: event.clientX, y: event.clientY };
-    triggerNoEscape(pointer);
+    triggerNoEscape({ x: event.clientX, y: event.clientY });
   }
 
   if (!ready) {
     return <main className="mobile-shell center">불러오는 중...</main>;
+  }
+
+  if (invitationMissing) {
+    return (
+      <main className="mobile-shell center stack">
+        <section className="paper-panel" style={{ padding: 24, width: "100%", textAlign: "center" }}>
+          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장입니다.</h2>
+          <p style={{ marginTop: 0 }}>새 초대장을 만들어 다시 공유해 주세요.</p>
+          <button className="btn-primary" onClick={() => router.push("/create")}>
+            초대장 만들기
+          </button>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -252,7 +266,7 @@ function AcceptPageContent() {
           }}
         >
           <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
-            네 너무 좋아요
+            너무 좋아요
           </button>
 
           {noFloating ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}

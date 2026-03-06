@@ -15,6 +15,7 @@ function ResultPageContent() {
   const inviteToken = searchParams.get("invite");
   const [state, setState] = useState(initialInvitationState);
   const [ready, setReady] = useState(false);
+  const [invitationMissing, setInvitationMissing] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -32,11 +33,17 @@ function ResultPageContent() {
               return;
             }
           }
+          setInvitationMissing(true);
+          return;
         }
 
         const next = loadInvitationState();
         setState(next);
       } catch {
+        if (inviteToken) {
+          setInvitationMissing(true);
+          return;
+        }
         setState(initialInvitationState);
       } finally {
         setReady(true);
@@ -48,6 +55,20 @@ function ResultPageContent() {
 
   if (!ready) {
     return <main className="mobile-shell center">불러오는 중...</main>;
+  }
+
+  if (invitationMissing) {
+    return (
+      <main className="mobile-shell center stack">
+        <section className="paper-panel" style={{ padding: 24, width: "100%" }}>
+          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장입니다.</h2>
+          <p style={{ marginTop: 0 }}>새 초대장을 만들어 다시 공유해 주세요.</p>
+          <button className="btn-primary" onClick={() => router.push("/create")}>
+            초대장 만들기
+          </button>
+        </section>
+      </main>
+    );
   }
 
   if (!state.accepted) {
