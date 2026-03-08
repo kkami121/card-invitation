@@ -7,6 +7,11 @@ import { initialInvitationState, loadInvitationState, saveInvitationState } from
 import { THEMES } from "@/lib/themes";
 import { AcceptModeKey, InvitationDraft } from "@/lib/types";
 
+const BASE_ICON = "💌";
+const BASE_HEADING = "초대장이 도착했습니다.";
+const BASE_SUBHEADING = "수락하시겠습니까?";
+const BASE_YES_LABEL = "너무 좋아요";
+
 const NO_BUTTON_WIDTH = 120;
 const NO_BUTTON_HEIGHT = 44;
 const EDGE_PADDING = 12;
@@ -40,6 +45,7 @@ function AcceptPageContent() {
   const [shrinkLevel, setShrinkLevel] = useState(0);
   const [bombStarted, setBombStarted] = useState(false);
   const [bombRemainingMs, setBombRemainingMs] = useState(BOMB_COUNTDOWN_MS);
+  const [adRejectPrompt, setAdRejectPrompt] = useState(false);
   const [position, setPosition] = useState({ left: 0, top: 0 });
 
   const panelRef = useRef<HTMLElement | null>(null);
@@ -73,6 +79,7 @@ function AcceptPageContent() {
               setShrinkLevel(0);
               setBombStarted(false);
               setBombRemainingMs(BOMB_COUNTDOWN_MS);
+              setAdRejectPrompt(false);
               return;
             }
           }
@@ -90,6 +97,7 @@ function AcceptPageContent() {
         setShrinkLevel(0);
         setBombStarted(false);
         setBombRemainingMs(BOMB_COUNTDOWN_MS);
+        setAdRejectPrompt(false);
       } catch {
         if (inviteToken) {
           setInvitationMissing(true);
@@ -227,6 +235,10 @@ function AcceptPageContent() {
     router.push("/result");
   }
 
+  function handleAdRejectClick() {
+    window.alert("광고 기능은 아직 연결되지 않았습니다. 추후 광고 시청 후 거절 처리로 연결할 수 있습니다.");
+  }
+
   function triggerNoReaction(pointer?: { x: number; y: number }) {
     setNoAttempts((prev) => prev + 1);
 
@@ -238,6 +250,11 @@ function AcceptPageContent() {
     if (acceptMode === "accept3") {
       setBombStarted(true);
       setBombRemainingMs(BOMB_COUNTDOWN_MS);
+      return;
+    }
+
+    if (acceptMode === "accept4") {
+      setAdRejectPrompt(true);
       return;
     }
 
@@ -280,8 +297,15 @@ function AcceptPageContent() {
     triggerNoReaction();
   }
 
+  function handleAdPromptNoClick() {
+    if (acceptMode !== "accept4") {
+      return;
+    }
+    triggerNoReaction();
+  }
+
   if (!ready) {
-    return <main className="mobile-shell center">불러오는 중...</main>;
+    return <main className="mobile-shell center">Loading...</main>;
   }
 
   if (invitationMissing) {
@@ -300,15 +324,24 @@ function AcceptPageContent() {
 
   const shrinkingNoButton = acceptMode === "accept2";
   const bombMode = acceptMode === "accept3";
+  const adMode = acceptMode === "accept4";
   const noHidden = shrinkingNoButton && shrinkLevel >= 4;
   const bombTriggered = bombMode && bombStarted;
   const bombExploded = bombTriggered && bombRemainingMs <= 0;
   const noScale = shrinkingNoButton ? Math.max(0.18, 1 - shrinkLevel * 0.2) : 1;
   const countdownSeconds = (bombRemainingMs / 1000).toFixed(1);
   const fuseRatio = bombTriggered ? Math.max(bombRemainingMs / BOMB_COUNTDOWN_MS, 0) : 1;
-  const headingText = bombExploded ? "" : bombTriggered ? "곧 폭탄이 폭발합니다." : "초대장이 도착했습니다.";
-  const subheadingText = bombExploded ? "" : bombTriggered ? "초대를 수락해주세요" : "수락하시겠습니까?";
-  const icon = bombTriggered ? (bombExploded ? "💥" : "💣") : bombMode ? "💌" : "💌";
+
+  const headingText = bombExploded ? "" : bombTriggered ? "곧 폭탄이 폭발합니다." : BASE_HEADING;
+  const subheadingText = bombExploded
+    ? ""
+    : adMode && adRejectPrompt
+      ? "광고를 보면 초대를 거절할 수 있습니다."
+      : bombTriggered
+        ? "초대를 수락해주세요"
+        : BASE_SUBHEADING;
+  const icon = bombTriggered ? (bombExploded ? "💥" : "💣") : adMode && adRejectPrompt ? "📺" : BASE_ICON;
+  const showSplitAdButtons = adMode && adRejectPrompt;
 
   return (
     <main className="mobile-shell center" style={{ position: "relative" }}>
@@ -335,7 +368,7 @@ function AcceptPageContent() {
         {bombTriggered ? (
           <div style={{ width: "100%", maxWidth: 300, marginTop: 2, marginBottom: 8 }}>
             {bombExploded ? (
-              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 40, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>펑!</p>
+              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 56, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>펑!</p>
             ) : (
               <>
                 <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
@@ -370,52 +403,80 @@ function AcceptPageContent() {
           </div>
         ) : null}
 
-        <div
-          className="row"
-          style={{
-            justifyContent: "center",
-            marginTop: 10,
-            width: "100%",
-            maxWidth: 280,
-            display: "grid",
-            gridTemplateColumns: "140px 120px",
-            columnGap: 12,
-            alignItems: "center",
-          }}
-        >
-          {bombExploded ? <div style={{ width: 140, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : (
-            <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
-              너무 좋아요
+        {showSplitAdButtons ? (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 320,
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            <button className="btn-primary" onClick={handleYes}>
+              초대수락하기
             </button>
-          )}
-
-          {noFloating || noHidden || bombTriggered ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
-
-          {noHidden || bombTriggered ? null : (
-            <button
-              ref={noButtonRef}
-              className="btn-danger"
-              style={{
-                minWidth: NO_BUTTON_WIDTH,
-                width: NO_BUTTON_WIDTH,
-                minHeight: NO_BUTTON_HEIGHT,
-                position: noFloating ? "absolute" : "static",
-                left: noFloating ? `${position.left}px` : undefined,
-                top: noFloating ? `${position.top}px` : undefined,
-                transition: noFloating ? "left 10ms ease-out, top 10ms ease-out" : "transform 140ms ease, opacity 140ms ease",
-                touchAction: "none",
-                opacity: shrinkingNoButton ? Math.max(0.2, 1 - shrinkLevel * 0.18) : 0.95,
-                transform: shrinkingNoButton ? `scale(${noScale})` : undefined,
-                transformOrigin: "center",
-              }}
-              onMouseEnter={shrinkingNoButton || bombMode ? undefined : handleNoHover}
-              onPointerDown={shrinkingNoButton || bombMode ? undefined : handleNoPointerDown}
-              onClick={shrinkingNoButton ? handleShrinkingNoClick : bombMode ? handleBombNoClick : undefined}
-            >
-              아니요
+            <button className="btn-secondary" onClick={handleAdRejectClick}>
+              광고보고 거절하기
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            className="row"
+            style={{
+              justifyContent: "center",
+              marginTop: 10,
+              width: "100%",
+              maxWidth: 280,
+              display: "grid",
+              gridTemplateColumns: "140px 120px",
+              columnGap: 12,
+              alignItems: "center",
+            }}
+          >
+            {bombExploded ? <div style={{ width: 140, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : (
+              <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
+                {BASE_YES_LABEL}
+              </button>
+            )}
+
+            {noFloating || noHidden || bombTriggered ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
+
+            {noHidden || bombTriggered ? null : (
+              <button
+                ref={noButtonRef}
+                className="btn-danger"
+                style={{
+                  minWidth: NO_BUTTON_WIDTH,
+                  width: NO_BUTTON_WIDTH,
+                  minHeight: NO_BUTTON_HEIGHT,
+                  position: noFloating ? "absolute" : "static",
+                  left: noFloating ? `${position.left}px` : undefined,
+                  top: noFloating ? `${position.top}px` : undefined,
+                  transition: noFloating ? "left 10ms ease-out, top 10ms ease-out" : "transform 140ms ease, opacity 140ms ease",
+                  touchAction: "none",
+                  opacity: shrinkingNoButton ? Math.max(0.2, 1 - shrinkLevel * 0.18) : 0.95,
+                  transform: shrinkingNoButton ? `scale(${noScale})` : undefined,
+                  transformOrigin: "center",
+                }}
+                onMouseEnter={shrinkingNoButton || bombMode || adMode ? undefined : handleNoHover}
+                onPointerDown={shrinkingNoButton || bombMode || adMode ? undefined : handleNoPointerDown}
+                onClick={
+                  shrinkingNoButton
+                    ? handleShrinkingNoClick
+                    : bombMode
+                      ? handleBombNoClick
+                      : adMode
+                        ? handleAdPromptNoClick
+                        : undefined
+                }
+              >
+                아니요
+              </button>
+            )}
+          </div>
+        )}
       </section>
     </main>
   );
