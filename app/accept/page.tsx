@@ -2,7 +2,7 @@
 
 import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ACCEPT_MODE_LABELS, DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
+import { DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
 import { initialInvitationState, loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { AcceptModeKey, InvitationDraft } from "@/lib/types";
@@ -76,6 +76,7 @@ function AcceptPageContent() {
               return;
             }
           }
+
           setInvitationMissing(true);
           setAcceptMode(DEFAULT_ACCEPT_MODE);
           setNoAttempts(0);
@@ -96,6 +97,7 @@ function AcceptPageContent() {
           setNoAttempts(0);
           return;
         }
+
         setAcceptMode(DEFAULT_ACCEPT_MODE);
         setNoAttempts(0);
       } finally {
@@ -300,12 +302,13 @@ function AcceptPageContent() {
   const bombMode = acceptMode === "accept3";
   const noHidden = shrinkingNoButton && shrinkLevel >= 4;
   const bombTriggered = bombMode && bombStarted;
+  const bombExploded = bombTriggered && bombRemainingMs <= 0;
   const noScale = shrinkingNoButton ? Math.max(0.18, 1 - shrinkLevel * 0.2) : 1;
   const countdownSeconds = (bombRemainingMs / 1000).toFixed(1);
   const fuseRatio = bombTriggered ? Math.max(bombRemainingMs / BOMB_COUNTDOWN_MS, 0) : 1;
-  const headingText = bombTriggered ? "폭탄이 곧 폭발합니다." : "초대장이 도착했습니다.";
-  const subheadingText = bombTriggered ? "초대를 수락해주세요" : "수락하시겠어요?";
-  const icon = bombTriggered ? (bombRemainingMs > 0 ? "💣" : "💥") : bombMode ? "💌" : "🤍";
+  const headingText = bombExploded ? "" : bombTriggered ? "곧 폭탄이 폭발합니다." : "초대장이 도착했습니다.";
+  const subheadingText = bombExploded ? "" : bombTriggered ? "초대를 수락해주세요" : "수락하시겠습니까?";
+  const icon = bombTriggered ? (bombExploded ? "💥" : "💣") : bombMode ? "💌" : "💌";
 
   return (
     <main className="mobile-shell center" style={{ position: "relative" }}>
@@ -326,38 +329,44 @@ function AcceptPageContent() {
         }}
       >
         <div style={{ fontSize: 56, lineHeight: 1 }}>{icon}</div>
-        <h1 style={{ marginBottom: 8 }}>{headingText}</h1>
-        <p style={{ marginBottom: 8, marginTop: 0, color: "var(--paper-muted)" }}>{subheadingText}</p>
+        {headingText ? <h1 style={{ marginBottom: 8 }}>{headingText}</h1> : null}
+        {subheadingText ? <p style={{ marginBottom: 8, marginTop: 0, color: "var(--paper-muted)" }}>{subheadingText}</p> : null}
 
         {bombTriggered ? (
           <div style={{ width: "100%", maxWidth: 300, marginTop: 2, marginBottom: 8 }}>
-            <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
-              폭탄이 터지면 초대를 수락할 수 없습니다.
-            </p>
-            <p style={{ marginTop: 0, marginBottom: 10, fontSize: 22, fontWeight: 800, color: "#b21f1f" }}>
-              {countdownSeconds}초
-            </p>
-            <div
-              aria-hidden
-              style={{
-                width: "100%",
-                height: 10,
-                borderRadius: 999,
-                background: "rgba(0, 0, 0, 0.08)",
-                overflow: "hidden",
-                boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.12)",
-              }}
-            >
-              <div
-                style={{
-                  width: `${Math.max(fuseRatio * 100, 0)}%`,
-                  height: "100%",
-                  borderRadius: 999,
-                  background: "linear-gradient(90deg, #f8bf44 0%, #ff7a18 55%, #d62828 100%)",
-                  transition: "width 100ms linear",
-                }}
-              />
-            </div>
+            {bombExploded ? (
+              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 40, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>펑!</p>
+            ) : (
+              <>
+                <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
+                  폭탄이 터지기 전에 초대를 수락해야 합니다.
+                </p>
+                <p style={{ marginTop: 0, marginBottom: 10, fontSize: 22, fontWeight: 800, color: "#b21f1f" }}>
+                  {countdownSeconds}초
+                </p>
+                <div
+                  aria-hidden
+                  style={{
+                    width: "100%",
+                    height: 10,
+                    borderRadius: 999,
+                    background: "rgba(0, 0, 0, 0.08)",
+                    overflow: "hidden",
+                    boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.12)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.max(fuseRatio * 100, 0)}%`,
+                      height: "100%",
+                      borderRadius: 999,
+                      background: "linear-gradient(90deg, #f8bf44 0%, #ff7a18 55%, #d62828 100%)",
+                      transition: "width 100ms linear",
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         ) : null}
 
@@ -374,9 +383,11 @@ function AcceptPageContent() {
             alignItems: "center",
           }}
         >
-          <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
-            너무 좋아요
-          </button>
+          {bombExploded ? <div style={{ width: 140, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : (
+            <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
+              너무 좋아요
+            </button>
+          )}
 
           {noFloating || noHidden || bombTriggered ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
 
