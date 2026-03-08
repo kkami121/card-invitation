@@ -14,6 +14,7 @@ const MIN_MOVE_PX = 120;
 const MAX_MOVE_PX = 200;
 const POINTER_SAFE_RADIUS = 96;
 const YES_SAFE_MARGIN = 18;
+const BOMB_COUNTDOWN_MS = 5000;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -37,6 +38,8 @@ function AcceptPageContent() {
   const [noAttempts, setNoAttempts] = useState(0);
   const [noFloating, setNoFloating] = useState(false);
   const [shrinkLevel, setShrinkLevel] = useState(0);
+  const [bombStarted, setBombStarted] = useState(false);
+  const [bombRemainingMs, setBombRemainingMs] = useState(BOMB_COUNTDOWN_MS);
   const [position, setPosition] = useState({ left: 0, top: 0 });
 
   const panelRef = useRef<HTMLElement | null>(null);
@@ -68,6 +71,8 @@ function AcceptPageContent() {
               setNoAttempts(0);
               setNoFloating(false);
               setShrinkLevel(0);
+              setBombStarted(false);
+              setBombRemainingMs(BOMB_COUNTDOWN_MS);
               return;
             }
           }
@@ -82,6 +87,8 @@ function AcceptPageContent() {
         setNoAttempts(state.noAttempts);
         setNoFloating(false);
         setShrinkLevel(0);
+        setBombStarted(false);
+        setBombRemainingMs(BOMB_COUNTDOWN_MS);
       } catch {
         if (inviteToken) {
           setInvitationMissing(true);
@@ -98,6 +105,18 @@ function AcceptPageContent() {
 
     init();
   }, [inviteToken]);
+
+  useEffect(() => {
+    if (acceptMode !== "accept3" || !bombStarted || bombRemainingMs <= 0) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setBombRemainingMs((prev) => Math.max(prev - 100, 0));
+    }, 100);
+
+    return () => window.clearTimeout(timeout);
+  }, [acceptMode, bombStarted, bombRemainingMs]);
 
   function setInitialFloatingFromDom() {
     const panel = panelRef.current;
@@ -214,6 +233,12 @@ function AcceptPageContent() {
       return;
     }
 
+    if (acceptMode === "accept3") {
+      setBombStarted(true);
+      setBombRemainingMs(BOMB_COUNTDOWN_MS);
+      return;
+    }
+
     if (!noFloating) {
       setInitialFloatingFromDom();
       setNoFloating(true);
@@ -246,6 +271,13 @@ function AcceptPageContent() {
     triggerNoReaction();
   }
 
+  function handleBombNoClick() {
+    if (acceptMode !== "accept3") {
+      return;
+    }
+    triggerNoReaction();
+  }
+
   if (!ready) {
     return <main className="mobile-shell center">불러오는 중...</main>;
   }
@@ -265,8 +297,15 @@ function AcceptPageContent() {
   }
 
   const shrinkingNoButton = acceptMode === "accept2";
+  const bombMode = acceptMode === "accept3";
   const noHidden = shrinkingNoButton && shrinkLevel >= 4;
+  const bombTriggered = bombMode && bombStarted;
   const noScale = shrinkingNoButton ? Math.max(0.18, 1 - shrinkLevel * 0.2) : 1;
+  const countdownSeconds = (bombRemainingMs / 1000).toFixed(1);
+  const fuseRatio = bombTriggered ? Math.max(bombRemainingMs / BOMB_COUNTDOWN_MS, 0) : 1;
+  const headingText = bombTriggered ? "폭탄이 곧 폭발합니다." : "초대장이 도착했습니다.";
+  const subheadingText = bombTriggered ? "초대를 수락해주세요" : "수락하시겠어요?";
+  const icon = bombTriggered ? (bombRemainingMs > 0 ? "💣" : "💥") : bombMode ? "💌" : "🤍";
 
   return (
     <main className="mobile-shell center" style={{ position: "relative" }}>
@@ -286,9 +325,41 @@ function AcceptPageContent() {
           overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: 56, lineHeight: 1 }}>💌</div>
-        <h1 style={{ marginBottom: 8 }}>초대장이 도착했습니다.</h1>
-        <p style={{ marginTop: 0, color: "var(--paper-muted)" }}>수락하시겠습니까?</p>
+        <div style={{ fontSize: 56, lineHeight: 1 }}>{icon}</div>
+        <h1 style={{ marginBottom: 8 }}>{headingText}</h1>
+        <p style={{ marginBottom: 8, marginTop: 0, color: "var(--paper-muted)" }}>{subheadingText}</p>
+
+        {bombTriggered ? (
+          <div style={{ width: "100%", maxWidth: 300, marginTop: 2, marginBottom: 8 }}>
+            <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
+              폭탄이 터지면 초대를 수락할 수 없습니다.
+            </p>
+            <p style={{ marginTop: 0, marginBottom: 10, fontSize: 22, fontWeight: 800, color: "#b21f1f" }}>
+              {countdownSeconds}초
+            </p>
+            <div
+              aria-hidden
+              style={{
+                width: "100%",
+                height: 10,
+                borderRadius: 999,
+                background: "rgba(0, 0, 0, 0.08)",
+                overflow: "hidden",
+                boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.12)",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.max(fuseRatio * 100, 0)}%`,
+                  height: "100%",
+                  borderRadius: 999,
+                  background: "linear-gradient(90deg, #f8bf44 0%, #ff7a18 55%, #d62828 100%)",
+                  transition: "width 100ms linear",
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
 
         <div
           className="row"
@@ -307,9 +378,9 @@ function AcceptPageContent() {
             너무 좋아요
           </button>
 
-          {noFloating || noHidden ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
+          {noFloating || noHidden || bombTriggered ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
 
-          {noHidden ? null : (
+          {noHidden || bombTriggered ? null : (
             <button
               ref={noButtonRef}
               className="btn-danger"
@@ -326,9 +397,9 @@ function AcceptPageContent() {
                 transform: shrinkingNoButton ? `scale(${noScale})` : undefined,
                 transformOrigin: "center",
               }}
-              onMouseEnter={shrinkingNoButton ? undefined : handleNoHover}
-              onPointerDown={shrinkingNoButton ? undefined : handleNoPointerDown}
-              onClick={shrinkingNoButton ? handleShrinkingNoClick : undefined}
+              onMouseEnter={shrinkingNoButton || bombMode ? undefined : handleNoHover}
+              onPointerDown={shrinkingNoButton || bombMode ? undefined : handleNoPointerDown}
+              onClick={shrinkingNoButton ? handleShrinkingNoClick : bombMode ? handleBombNoClick : undefined}
             >
               아니요
             </button>
