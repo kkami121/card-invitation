@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import sharp from "sharp";
+import { normalizeAcceptMode } from "@/lib/acceptModes";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
 
@@ -225,6 +226,7 @@ export async function createInvitation(draft: InvitationDraft): Promise<StoredIn
     createdAt: Date.now(),
     draft: {
       themeKey: draft.themeKey,
+      acceptMode: normalizeAcceptMode(draft.acceptMode),
       emojis: draft.emojis || theme.emojis.join(" "),
       title: draft.title,
       date: draft.date,

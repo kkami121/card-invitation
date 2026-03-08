@@ -2,9 +2,10 @@
 
 import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { ACCEPT_MODE_LABELS, DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
+import { initialInvitationState, loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
-import { InvitationDraft } from "@/lib/types";
+import { AcceptModeKey, InvitationDraft } from "@/lib/types";
 
 const NO_BUTTON_WIDTH = 120;
 const NO_BUTTON_HEIGHT = 44;
@@ -32,8 +33,10 @@ function AcceptPageContent() {
 
   const [ready, setReady] = useState(false);
   const [invitationMissing, setInvitationMissing] = useState(false);
+  const [acceptMode, setAcceptMode] = useState<AcceptModeKey>(DEFAULT_ACCEPT_MODE);
   const [noAttempts, setNoAttempts] = useState(0);
   const [noFloating, setNoFloating] = useState(false);
+  const [shrinkLevel, setShrinkLevel] = useState(0);
   const [position, setPosition] = useState({ left: 0, top: 0 });
 
   const panelRef = useRef<HTMLElement | null>(null);
@@ -49,31 +52,44 @@ function AcceptPageContent() {
             const payload = (await res.json()) as { draft?: InvitationDraft };
             if (payload?.draft) {
               const theme = THEMES[payload.draft.themeKey] ?? THEMES.promise;
+              const normalizedDraft: InvitationDraft = {
+                ...initialInvitationState.draft,
+                ...payload.draft,
+                acceptMode: normalizeAcceptMode(payload.draft.acceptMode),
+                emojis: payload.draft.emojis || theme.emojis.join(" "),
+              };
+
               saveInvitationState({
-                draft: {
-                  ...payload.draft,
-                  emojis: payload.draft.emojis || theme.emojis.join(" "),
-                },
+                draft: normalizedDraft,
                 accepted: false,
                 noAttempts: 0,
               });
+              setAcceptMode(normalizedDraft.acceptMode);
               setNoAttempts(0);
+              setNoFloating(false);
+              setShrinkLevel(0);
               return;
             }
           }
           setInvitationMissing(true);
+          setAcceptMode(DEFAULT_ACCEPT_MODE);
           setNoAttempts(0);
           return;
         }
 
         const state = loadInvitationState();
+        setAcceptMode(normalizeAcceptMode(state.draft.acceptMode));
         setNoAttempts(state.noAttempts);
+        setNoFloating(false);
+        setShrinkLevel(0);
       } catch {
         if (inviteToken) {
           setInvitationMissing(true);
+          setAcceptMode(DEFAULT_ACCEPT_MODE);
           setNoAttempts(0);
           return;
         }
+        setAcceptMode(DEFAULT_ACCEPT_MODE);
         setNoAttempts(0);
       } finally {
         setReady(true);
@@ -190,8 +206,13 @@ function AcceptPageContent() {
     router.push("/result");
   }
 
-  function triggerNoEscape(pointer?: { x: number; y: number }) {
+  function triggerNoReaction(pointer?: { x: number; y: number }) {
     setNoAttempts((prev) => prev + 1);
+
+    if (acceptMode === "accept2") {
+      setShrinkLevel((prev) => Math.min(prev + 1, 4));
+      return;
+    }
 
     if (!noFloating) {
       setInitialFloatingFromDom();
@@ -202,14 +223,27 @@ function AcceptPageContent() {
   }
 
   function handleNoHover(event: MouseEvent<HTMLButtonElement>) {
-    triggerNoEscape({ x: event.clientX, y: event.clientY });
+    if (acceptMode !== "accept1") {
+      return;
+    }
+    triggerNoReaction({ x: event.clientX, y: event.clientY });
   }
 
   function handleNoPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (acceptMode !== "accept1") {
+      return;
+    }
     if (event.pointerType !== "mouse") {
       event.preventDefault();
     }
-    triggerNoEscape({ x: event.clientX, y: event.clientY });
+    triggerNoReaction({ x: event.clientX, y: event.clientY });
+  }
+
+  function handleShrinkingNoClick() {
+    if (acceptMode !== "accept2") {
+      return;
+    }
+    triggerNoReaction();
   }
 
   if (!ready) {
@@ -229,6 +263,10 @@ function AcceptPageContent() {
       </main>
     );
   }
+
+  const shrinkingNoButton = acceptMode === "accept2";
+  const noHidden = shrinkingNoButton && shrinkLevel >= 4;
+  const noScale = shrinkingNoButton ? Math.max(0.18, 1 - shrinkLevel * 0.2) : 1;
 
   return (
     <main className="mobile-shell center" style={{ position: "relative" }}>
@@ -269,27 +307,32 @@ function AcceptPageContent() {
             너무 좋아요
           </button>
 
-          {noFloating ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
+          {noFloating || noHidden ? <div style={{ width: NO_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : null}
 
-          <button
-            ref={noButtonRef}
-            className="btn-danger"
-            style={{
-              minWidth: NO_BUTTON_WIDTH,
-              width: NO_BUTTON_WIDTH,
-              minHeight: NO_BUTTON_HEIGHT,
-              position: noFloating ? "absolute" : "static",
-              left: noFloating ? `${position.left}px` : undefined,
-              top: noFloating ? `${position.top}px` : undefined,
-              transition: noFloating ? "left 10ms ease-out, top 10ms ease-out" : undefined,
-              touchAction: "none",
-              opacity: 0.95,
-            }}
-            onMouseEnter={handleNoHover}
-            onPointerDown={handleNoPointerDown}
-          >
-            아니요
-          </button>
+          {noHidden ? null : (
+            <button
+              ref={noButtonRef}
+              className="btn-danger"
+              style={{
+                minWidth: NO_BUTTON_WIDTH,
+                width: NO_BUTTON_WIDTH,
+                minHeight: NO_BUTTON_HEIGHT,
+                position: noFloating ? "absolute" : "static",
+                left: noFloating ? `${position.left}px` : undefined,
+                top: noFloating ? `${position.top}px` : undefined,
+                transition: noFloating ? "left 10ms ease-out, top 10ms ease-out" : "transform 140ms ease, opacity 140ms ease",
+                touchAction: "none",
+                opacity: shrinkingNoButton ? Math.max(0.2, 1 - shrinkLevel * 0.18) : 0.95,
+                transform: shrinkingNoButton ? `scale(${noScale})` : undefined,
+                transformOrigin: "center",
+              }}
+              onMouseEnter={shrinkingNoButton ? undefined : handleNoHover}
+              onPointerDown={shrinkingNoButton ? undefined : handleNoPointerDown}
+              onClick={shrinkingNoButton ? handleShrinkingNoClick : undefined}
+            >
+              아니요
+            </button>
+          )}
         </div>
       </section>
     </main>

@@ -11,6 +11,8 @@ export type OccasionKey =
   | "lunar-new-year"
   | "chuseok";
 
+export type AcceptModeKey = "accept1" | "accept2";
+
 export type InvitationTheme = {
   key: OccasionKey;
   label: string;
@@ -23,6 +25,7 @@ export type InvitationTheme = {
 
 export type InvitationDraft = {
   themeKey: OccasionKey;
+  acceptMode: AcceptModeKey;
   emojis: string;
   title: string;
   date: string;

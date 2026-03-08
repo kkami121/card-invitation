@@ -1,3 +1,4 @@
+import { DEFAULT_ACCEPT_MODE } from "@/lib/acceptModes";
 import { THEMES, defaultImageDataUrl, DEFAULT_THEME_KEY } from "@/lib/themes";
 import { InvitationState } from "@/lib/types";
 
@@ -17,6 +18,7 @@ const initialMetrics: InvitationMetrics = {
 export const initialInvitationState: InvitationState = {
   draft: {
     themeKey: DEFAULT_THEME_KEY,
+    acceptMode: DEFAULT_ACCEPT_MODE,
     emojis: THEMES[DEFAULT_THEME_KEY].emojis.join(" "),
     title: THEMES[DEFAULT_THEME_KEY].title,
     date: "2026-02-14",

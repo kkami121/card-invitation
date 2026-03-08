@@ -1,3 +1,4 @@
+import { normalizeAcceptMode } from "@/lib/acceptModes";
 import { DEFAULT_THEME_KEY, THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
 
@@ -77,6 +78,13 @@ export function parseInviteToken(token: string): ParsedInvitePayload | null {
     const themeKeyCandidate = typeof draft.themeKey === "string" ? (draft.themeKey as OccasionKey) : null;
     const themeKey = themeKeyCandidate && themeKeyCandidate in THEMES ? themeKeyCandidate : DEFAULT_THEME_KEY;
     if (
+      typeof draft.acceptMode !== "undefined" &&
+      typeof draft.acceptMode !== "string"
+    ) {
+      return null;
+    }
+
+    if (
       typeof draft.emojis !== "string" ||
       typeof draft.title !== "string" ||
       typeof draft.date !== "string" ||
@@ -92,6 +100,7 @@ export function parseInviteToken(token: string): ParsedInvitePayload | null {
       createdAt: parsed.createdAt,
       draft: {
         themeKey,
+        acceptMode: normalizeAcceptMode(draft.acceptMode),
         emojis: draft.emojis,
         title: draft.title,
         date: draft.date,

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import InvitationCard from "@/components/InvitationCard";
 import TopBannerAd from "@/components/TopBannerAd";
+import { normalizeAcceptMode } from "@/lib/acceptModes";
 import { initialInvitationState, loadInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
@@ -25,8 +26,13 @@ function ResultPageContent() {
           if (res.ok) {
             const payload = (await res.json()) as { draft?: InvitationDraft };
             if (payload?.draft) {
+              const normalizedDraft: InvitationDraft = {
+                ...initialInvitationState.draft,
+                ...payload.draft,
+                acceptMode: normalizeAcceptMode(payload.draft.acceptMode),
+              };
               setState({
-                draft: payload.draft,
+                draft: normalizedDraft,
                 accepted: true,
                 noAttempts: 0,
               });

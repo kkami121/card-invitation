@@ -3,6 +3,7 @@
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import TopBannerAd from "@/components/TopBannerAd";
+import { pickRandomAcceptMode } from "@/lib/acceptModes";
 import { initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
@@ -206,6 +207,7 @@ export default function CreatePage() {
   const [draft, setDraft] = useState<InvitationDraft>(() => ({
     ...initialInvitationState.draft,
     themeKey: "promise",
+    acceptMode: initialInvitationState.draft.acceptMode,
     emojis: THEMES.promise.emojis.join(" "),
     title: THEMES.promise.title,
     date: formatDate(now),
@@ -427,12 +429,17 @@ export default function CreatePage() {
     }
 
     try {
+      const nextDraft: InvitationDraft = {
+        ...draft,
+        acceptMode: pickRandomAcceptMode(),
+      };
+
       const res = await fetch("/api/invitations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ draft }),
+        body: JSON.stringify({ draft: nextDraft }),
       });
       if (!res.ok) {
         let message = "failed";
@@ -453,7 +460,7 @@ export default function CreatePage() {
         throw new Error("invalid id");
       }
 
-      saveInvitationState({ draft, accepted: false, noAttempts: 0 });
+      saveInvitationState({ draft: nextDraft, accepted: false, noAttempts: 0 });
       const nextUrl = `${window.location.origin}/accept?invite=${encodeURIComponent(data.id)}`;
       setInviteUrl(nextUrl);
       setInviteModalOpen(true);
