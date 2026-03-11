@@ -6,6 +6,10 @@ http://{$DOMAIN} {
   redir https://{$DOMAIN}{uri}
 }
 
+http://{$ROULETTE_DOMAIN} {
+  redir https://{$ROULETTE_DOMAIN}{uri}
+}
+
 {$DOMAIN} {
   encode gzip zstd
 
@@ -22,6 +26,12 @@ http://{$DOMAIN} {
   header @static Cache-Control "public, max-age=3600"
 
   reverse_proxy cardinvitation:3000
+}
+
+{$ROULETTE_DOMAIN} {
+  encode gzip zstd
+  header Cache-Control "public, max-age=3600"
+  reverse_proxy roulette-physics:80
 }
 
 http://{$HOST_IP}, http://localhost {

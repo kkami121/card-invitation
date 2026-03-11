@@ -7,7 +7,7 @@ services:
       PUID: ${DUCKDNS_PUID:-1000}
       PGID: ${DUCKDNS_PGID:-1000}
       TZ: ${TZ:-Asia/Seoul}
-      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:-card-invitation}
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:-card-invitation,spin-roulette}
       TOKEN: ${DUCKDNS_TOKEN:-}
       LOG_FILE: "false"
     volumes:
@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:-card-invitation.duckdns.org}
+      ROULETTE_DOMAIN: ${ROULETTE_DOMAIN:-spin-roulette.duckdns.org}
       HOST_IP: ${HOST_IP:-127.0.0.1}
       ACME_EMAIL: ${ACME_EMAIL:-}
       WAITING_ROOM_PATH: ${WAITING_ROOM_PATH:-/__waiting_disabled__}
@@ -31,6 +32,7 @@ services:
       - caddy_config:/config
     depends_on:
       - cardinvitation
+      - roulette-physics
 
   cardinvitation:
     build:
@@ -45,6 +47,13 @@ services:
     volumes:
       - ./data:/app/data
       - ./public/uploads:/app/public/uploads
+
+  roulette-physics:
+    build:
+      context: ../roulette-physics
+      dockerfile: Dockerfile.prod
+    container_name: roulette-physics
+    restart: unless-stopped
 
 volumes:
   duckdns_config:
