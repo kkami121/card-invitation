@@ -54,6 +54,8 @@ services:
       dockerfile: Dockerfile.prod
     container_name: roulette-physics
     restart: unless-stopped
+    volumes:
+      - ../roulette-physics:/workspace/roulette-physics:ro
 
 volumes:
   duckdns_config:

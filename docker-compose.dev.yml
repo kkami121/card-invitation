@@ -1,6 +1,6 @@
 services:
-  card-invitation:
-    container_name: card-invitation
+  cardinvitation:
+    container_name: card-invitation-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -10,7 +10,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
     environment:
-      - NODE_ENV=development
-      - WATCHPACK_POLLING=true
-    command: sh -c "npm install && npm run dev -- -H 0.0.0.0 -p 3000"
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+    command: npm run dev -- -H 0.0.0.0 -p 3000
