@@ -11,6 +11,7 @@ const BASE_ICON = "💌";
 const BASE_HEADING = "초대장이 도착했습니다.";
 const BASE_SUBHEADING = "수락하시겠습니까?";
 const BASE_YES_LABEL = "네! 좋아요";
+const ACCEPT_INVITE_LABEL = "초대 수락하기";
 
 const YES_BUTTON_WIDTH = 140;
 const NO_BUTTON_WIDTH = 120;
@@ -428,7 +429,7 @@ function AcceptPageContent() {
         {bombTriggered ? (
           <div style={{ width: "100%", maxWidth: 300, marginTop: 2, marginBottom: 8 }}>
             {bombExploded ? (
-              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 56, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>끝</p>
+              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 56, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>펑!</p>
             ) : (
               <>
                 <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
@@ -494,6 +495,25 @@ function AcceptPageContent() {
               onClick={handleAdRewardStart}
             >
               광고보고 거절하기
+            </button>
+          </div>
+        ) : bombTriggered && !bombExploded ? (
+          <div
+            className="row"
+            style={{
+              justifyContent: "center",
+              marginTop: 10,
+              width: "100%",
+              maxWidth: YES_BUTTON_WIDTH,
+            }}
+          >
+            <button
+              ref={yesButtonRef}
+              className="btn-primary"
+              style={{ minWidth: YES_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }}
+              onClick={handleYes}
+            >
+              {ACCEPT_INVITE_LABEL}
             </button>
           </div>
         ) : (
