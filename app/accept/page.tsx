@@ -569,30 +569,16 @@ function AcceptPageContent() {
             onClick={(event) => event.stopPropagation()}
           >
             <h3 className="ad-modal-title">광고 시청 후 거절하기</h3>
-            <div
-              style={{
-                borderRadius: 12,
-                padding: 14,
-                background: "linear-gradient(135deg, #fff7ea 0%, #f7efe1 100%)",
-                border: "1px solid #e5d6bf",
-                textAlign: "left",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
-              }}
-            >
-              <div className="ad-modal-line" style={{ marginTop: 12, marginBottom: 8 }}>
+            
+             
                 <img
                   src="/accept4_ad.jpg"
                   alt="accept4 advertisement"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    borderRadius: 10,
-                    objectFit: "cover",
-                  }}
+                  className="ad-modal-image"
                 />
-              </div>
+         
               
-            </div>
+          
             <div
               aria-hidden
               style={{
