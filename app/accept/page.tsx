@@ -5,15 +5,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
 import { initialInvitationState, loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
-import { AcceptModeKey, InvitationDraft } from "@/lib/types";
+import type { AcceptModeKey, InvitationDraft } from "@/lib/types";
 
 const BASE_ICON = "💌";
 const BASE_HEADING = "초대장이 도착했습니다.";
 const BASE_SUBHEADING = "수락하시겠습니까?";
-const BASE_YES_LABEL = "너무 좋아요";
+const BASE_YES_LABEL = "네! 좋아요";
 
+const YES_BUTTON_WIDTH = 140;
 const NO_BUTTON_WIDTH = 120;
+const AD_REJECT_BUTTON_WIDTH = 160;
 const NO_BUTTON_HEIGHT = 44;
+const ACTION_BUTTON_GAP = 12;
+const ACTION_ROW_MAX_WIDTH = YES_BUTTON_WIDTH + NO_BUTTON_WIDTH + ACTION_BUTTON_GAP;
+const AD_ACTION_ROW_MAX_WIDTH = YES_BUTTON_WIDTH + AD_REJECT_BUTTON_WIDTH + ACTION_BUTTON_GAP;
+const AD_REWARD_COUNTDOWN_SECONDS = 5;
 const EDGE_PADDING = 12;
 const MIN_MOVE_PX = 120;
 const MAX_MOVE_PX = 200;
@@ -46,6 +52,9 @@ function AcceptPageContent() {
   const [bombStarted, setBombStarted] = useState(false);
   const [bombRemainingMs, setBombRemainingMs] = useState(BOMB_COUNTDOWN_MS);
   const [adRejectPrompt, setAdRejectPrompt] = useState(false);
+  const [adModalOpen, setAdModalOpen] = useState(false);
+  const [adCountdown, setAdCountdown] = useState(AD_REWARD_COUNTDOWN_SECONDS);
+  const [adRejectCompleted, setAdRejectCompleted] = useState(false);
   const [position, setPosition] = useState({ left: 0, top: 0 });
 
   const panelRef = useRef<HTMLElement | null>(null);
@@ -80,6 +89,9 @@ function AcceptPageContent() {
               setBombStarted(false);
               setBombRemainingMs(BOMB_COUNTDOWN_MS);
               setAdRejectPrompt(false);
+              setAdModalOpen(false);
+              setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+              setAdRejectCompleted(false);
               return;
             }
           }
@@ -87,6 +99,9 @@ function AcceptPageContent() {
           setInvitationMissing(true);
           setAcceptMode(DEFAULT_ACCEPT_MODE);
           setNoAttempts(0);
+          setAdModalOpen(false);
+          setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+          setAdRejectCompleted(false);
           return;
         }
 
@@ -98,16 +113,25 @@ function AcceptPageContent() {
         setBombStarted(false);
         setBombRemainingMs(BOMB_COUNTDOWN_MS);
         setAdRejectPrompt(false);
+        setAdModalOpen(false);
+        setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+        setAdRejectCompleted(false);
       } catch {
         if (inviteToken) {
           setInvitationMissing(true);
           setAcceptMode(DEFAULT_ACCEPT_MODE);
           setNoAttempts(0);
+          setAdModalOpen(false);
+          setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+          setAdRejectCompleted(false);
           return;
         }
 
         setAcceptMode(DEFAULT_ACCEPT_MODE);
         setNoAttempts(0);
+        setAdModalOpen(false);
+        setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+        setAdRejectCompleted(false);
       } finally {
         setReady(true);
       }
@@ -127,6 +151,18 @@ function AcceptPageContent() {
 
     return () => window.clearTimeout(timeout);
   }, [acceptMode, bombStarted, bombRemainingMs]);
+
+  useEffect(() => {
+    if (!adModalOpen || adCountdown <= 0) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setAdCountdown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => window.clearTimeout(timeout);
+  }, [adModalOpen, adCountdown]);
 
   function setInitialFloatingFromDom() {
     const panel = panelRef.current;
@@ -235,8 +271,20 @@ function AcceptPageContent() {
     router.push("/result");
   }
 
-  function handleAdRejectClick() {
-    window.alert("광고 기능은 아직 연결되지 않았습니다. 추후 광고 시청 후 거절 처리로 연결할 수 있습니다.");
+  function handleAdRewardStart() {
+    if (adRejectCompleted) {
+      return;
+    }
+    setAdCountdown(AD_REWARD_COUNTDOWN_SECONDS);
+    setAdModalOpen(true);
+  }
+
+  function handleAdModalClose() {
+    if (adCountdown > 0) {
+      return;
+    }
+    setAdModalOpen(false);
+    setAdRejectCompleted(true);
   }
 
   function triggerNoReaction(pointer?: { x: number; y: number }) {
@@ -312,7 +360,7 @@ function AcceptPageContent() {
     return (
       <main className="mobile-shell center stack">
         <section className="paper-panel" style={{ padding: 24, width: "100%", textAlign: "center" }}>
-          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장입니다.</h2>
+          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장이에요.</h2>
           <p style={{ marginTop: 0 }}>새 초대장을 만들어 다시 공유해 주세요.</p>
           <button className="btn-primary" onClick={() => router.push("/create")}>
             초대장 만들기
@@ -335,13 +383,25 @@ function AcceptPageContent() {
   const headingText = bombExploded ? "" : bombTriggered ? "곧 폭탄이 폭발합니다." : BASE_HEADING;
   const subheadingText = bombExploded
     ? ""
-    : adMode && adRejectPrompt
-      ? "광고를 보면 초대를 거절할 수 있습니다."
-      : bombTriggered
-        ? "초대를 수락해주세요"
-        : BASE_SUBHEADING;
+    : bombTriggered
+      ? "초대를 수락해 주세요"
+      : BASE_SUBHEADING;
   const icon = bombTriggered ? (bombExploded ? "💥" : "💣") : adMode && adRejectPrompt ? "📺" : BASE_ICON;
   const showSplitAdButtons = adMode && adRejectPrompt;
+  const displayHeadingText = adRejectCompleted
+    ? "거절 완료"
+    : adMode && adRejectPrompt
+      ? "광고 시청 후 거절하기"
+      : headingText;
+  const displaySubheadingText = adRejectCompleted
+    ? "광고 시청후 거절 처리되었어요."
+    : adMode && adRejectPrompt
+      ? "거절 하시겠습니까?"
+      : subheadingText;
+  const adCloseButtonLabel = adCountdown > 0 ? `닫기 (${adCountdown})` : "닫기";
+  const headingStyle = adMode && adRejectPrompt
+    ? { marginBottom: 8, fontSize: "clamp(22px, 5vw, 28px)", whiteSpace: "nowrap" as const }
+    : { marginBottom: 8 };
 
   return (
     <main className="mobile-shell center" style={{ position: "relative" }}>
@@ -362,17 +422,17 @@ function AcceptPageContent() {
         }}
       >
         <div style={{ fontSize: 56, lineHeight: 1 }}>{icon}</div>
-        {headingText ? <h1 style={{ marginBottom: 8 }}>{headingText}</h1> : null}
-        {subheadingText ? <p style={{ marginBottom: 8, marginTop: 0, color: "var(--paper-muted)" }}>{subheadingText}</p> : null}
+        {displayHeadingText ? <h1 style={headingStyle}>{displayHeadingText}</h1> : null}
+        {displaySubheadingText ? <p style={{ marginBottom: 8, marginTop: 0, color: "var(--paper-muted)" }}>{displaySubheadingText}</p> : null}
 
         {bombTriggered ? (
           <div style={{ width: "100%", maxWidth: 300, marginTop: 2, marginBottom: 8 }}>
             {bombExploded ? (
-              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 56, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>펑!</p>
+              <p style={{ marginTop: 20, marginBottom: 10, fontSize: 56, fontWeight: 900, color: "#b21f1f", lineHeight: 1 }}>끝</p>
             ) : (
               <>
                 <p style={{ marginTop: 0, marginBottom: 6, fontSize: 13, fontWeight: 750, color: "#6e1d1d" }}>
-                  폭탄이 터지기 전에 초대를 수락해야 합니다.
+                  제한 시간 안에 초대를 수락해야 합니다.
                 </p>
                 <p style={{ marginTop: 0, marginBottom: 10, fontSize: 22, fontWeight: 800, color: "#b21f1f" }}>
                   {countdownSeconds}초
@@ -403,21 +463,36 @@ function AcceptPageContent() {
           </div>
         ) : null}
 
-        {showSplitAdButtons ? (
+        {adRejectCompleted ? null : showSplitAdButtons ? (
           <div
             style={{
               width: "100%",
-              maxWidth: 320,
+              maxWidth: AD_ACTION_ROW_MAX_WIDTH,
               marginTop: 10,
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 12,
+              gridTemplateColumns: `${YES_BUTTON_WIDTH}px ${AD_REJECT_BUTTON_WIDTH}px`,
+              columnGap: ACTION_BUTTON_GAP,
+              alignItems: "center",
             }}
           >
-            <button className="btn-primary" onClick={handleYes}>
-              초대수락하기
+            <button
+              className="btn-primary"
+              style={{ minWidth: YES_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }}
+              onClick={handleYes}
+            >
+              초대 수락하기
             </button>
-            <button className="btn-secondary" onClick={handleAdRejectClick}>
+            <button
+              className="btn-secondary accept4-ad-button"
+              data-label="광고보고 거절하기"
+              style={{
+                minWidth: AD_REJECT_BUTTON_WIDTH,
+                width: AD_REJECT_BUTTON_WIDTH,
+                minHeight: NO_BUTTON_HEIGHT,
+                whiteSpace: "nowrap",
+              }}
+              onClick={handleAdRewardStart}
+            >
               광고보고 거절하기
             </button>
           </div>
@@ -428,15 +503,20 @@ function AcceptPageContent() {
               justifyContent: "center",
               marginTop: 10,
               width: "100%",
-              maxWidth: 280,
+              maxWidth: ACTION_ROW_MAX_WIDTH,
               display: "grid",
-              gridTemplateColumns: "140px 120px",
-              columnGap: 12,
+              gridTemplateColumns: `${YES_BUTTON_WIDTH}px ${NO_BUTTON_WIDTH}px`,
+              columnGap: ACTION_BUTTON_GAP,
               alignItems: "center",
             }}
           >
-            {bombExploded ? <div style={{ width: 140, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : (
-              <button ref={yesButtonRef} className="btn-primary" style={{ minWidth: 140 }} onClick={handleYes}>
+            {bombExploded ? <div style={{ width: YES_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }} aria-hidden /> : (
+              <button
+                ref={yesButtonRef}
+                className="btn-primary"
+                style={{ minWidth: YES_BUTTON_WIDTH, minHeight: NO_BUTTON_HEIGHT }}
+                onClick={handleYes}
+              >
                 {BASE_YES_LABEL}
               </button>
             )}
@@ -478,6 +558,77 @@ function AcceptPageContent() {
           </div>
         )}
       </section>
+
+      {adModalOpen ? (
+        <div className="ad-modal-backdrop" role="presentation">
+          <section
+            className="ad-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="reward-ad-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="ad-modal-title">광고 시청 후 거절하기</h3>
+            <div
+              style={{
+                borderRadius: 12,
+                padding: 14,
+                background: "linear-gradient(135deg, #fff7ea 0%, #f7efe1 100%)",
+                border: "1px solid #e5d6bf",
+                textAlign: "left",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
+              }}
+            >
+              <div className="ad-modal-line" style={{ marginTop: 12, marginBottom: 8 }}>
+                <img
+                  src="/accept4_ad.jpg"
+                  alt="accept4 advertisement"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    borderRadius: 10,
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+              
+            </div>
+            <div
+              aria-hidden
+              style={{
+                width: "100%",
+                height: 8,
+                marginTop: 14,
+                borderRadius: 999,
+                background: "rgba(0, 0, 0, 0.08)",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${((AD_REWARD_COUNTDOWN_SECONDS - adCountdown) / AD_REWARD_COUNTDOWN_SECONDS) * 100}%`,
+                  height: "100%",
+                  borderRadius: 999,
+                  background: "linear-gradient(90deg, #2e6342 0%, #88b17d 100%)",
+                  transition: "width 1s linear",
+                }}
+              />
+            </div>
+            <p className="ad-modal-line" style={{ marginTop: 10, textAlign: "center", color: "#6f6557" }}>
+              {adCountdown > 0 ? `${adCountdown}초 후 닫을 수 있어요.` : ""}
+            </p>
+            <button
+              type="button"
+              className="btn-primary ad-modal-close"
+              style={{ opacity: adCountdown > 0 ? 0.6 : 1, cursor: adCountdown > 0 ? "not-allowed" : "pointer" }}
+              disabled={adCountdown > 0}
+              onClick={handleAdModalClose}
+            >
+              {adCloseButtonLabel}
+            </button>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

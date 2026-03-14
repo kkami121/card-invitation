@@ -148,6 +148,17 @@ button {
   color: #fff;
 }
 
+.accept4-ad-button {
+  position: relative;
+  font-size: 0;
+}
+
+.accept4-ad-button::after {
+  content: attr(data-label);
+  font-size: 0.96rem;
+  line-height: 1;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
