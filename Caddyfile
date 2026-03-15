@@ -35,7 +35,7 @@ http://{$PIC_MOMENT_DOMAIN} {
 {$ROULETTE_DOMAIN} {
   encode gzip zstd
   header Cache-Control "public, max-age=3600"
-  reverse_proxy roulette-physics:80
+  reverse_proxy {$ROULETTE_UPSTREAM:roulette-physics:80}
 }
 
 {$PIC_MOMENT_DOMAIN} {
