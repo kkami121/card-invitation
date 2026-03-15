@@ -7,7 +7,7 @@ services:
       PUID: ${DUCKDNS_PUID:-1000}
       PGID: ${DUCKDNS_PGID:-1000}
       TZ: ${TZ:-Asia/Seoul}
-      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:-card-invitation,spin-roulette}
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:-card-invitation,spin-roulette,pic-moment}
       TOKEN: ${DUCKDNS_TOKEN:-}
       LOG_FILE: "false"
     volumes:
@@ -20,6 +20,7 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-card-invitation.duckdns.org}
       ROULETTE_DOMAIN: ${ROULETTE_DOMAIN:-spin-roulette.duckdns.org}
+      PIC_MOMENT_DOMAIN: ${PIC_MOMENT_DOMAIN:-pic-moment.duckdns.org}
       HOST_IP: ${HOST_IP:-127.0.0.1}
       ACME_EMAIL: ${ACME_EMAIL:-}
       WAITING_ROOM_PATH: ${WAITING_ROOM_PATH:-/__waiting_disabled__}
@@ -33,6 +34,7 @@ services:
     depends_on:
       - cardinvitation
       - roulette-physics
+      - pic-moment
 
   cardinvitation:
     build:
@@ -40,6 +42,8 @@ services:
       dockerfile: Dockerfile
     container_name: card-invitation
     restart: unless-stopped
+    ports:
+      - "${CARDINVITATION_DIRECT_PORT:-3010}:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -54,8 +58,22 @@ services:
       dockerfile: Dockerfile.prod
     container_name: roulette-physics
     restart: unless-stopped
+    ports:
+      - "${ROULETTE_DIRECT_PORT:-5173}:80"
     volumes:
       - ../roulette-physics:/workspace/roulette-physics:ro
+
+  pic-moment:
+    build:
+      context: ../pic-moment
+      dockerfile: Dockerfile.prod
+    container_name: pic-moment
+    restart: unless-stopped
+    ports:
+      - "${PIC_MOMENT_DIRECT_PORT:-3020}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
 
 volumes:
   duckdns_config:
