@@ -117,6 +117,22 @@ export function incrementCreatedCount(): void {
   });
 }
 
+export function markInvitationAccepted(inviteToken: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(`accepted-${inviteToken}`, "1");
+  } catch {}
+}
+
+export function hasAcceptedInvitation(inviteToken: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(`accepted-${inviteToken}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function incrementAcceptedCount(): void {
   const current = loadInvitationMetrics();
   saveInvitationMetrics({

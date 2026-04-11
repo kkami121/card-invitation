@@ -607,7 +607,7 @@ button {
 }
 
 .map-my-location-btn--raised {
-  bottom: 100px;
+  bottom: 120px;
 }
 
 .map-my-location-btn:active {
@@ -696,7 +696,7 @@ button {
   padding: 7px 10px;
   border: 1.5px solid #d0c8be;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 16px; /* 16px 미만이면 모바일에서 자동 확대됨 */
   outline: none;
 }
 

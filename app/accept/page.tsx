@@ -4,7 +4,7 @@ import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useSta
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
 import { useT } from "@/lib/localeContext";
-import { initialInvitationState, loadInvitationState, saveInvitationState } from "@/lib/storage";
+import { hasAcceptedInvitation, initialInvitationState, loadInvitationState, markInvitationAccepted, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import type { AcceptModeKey, InvitationDraft } from "@/lib/types";
 
@@ -69,6 +69,12 @@ function AcceptPageContent() {
     async function init() {
       try {
         if (inviteToken) {
+          // 이미 수락한 초대장이면 결과 페이지로 바로 이동
+          if (hasAcceptedInvitation(inviteToken)) {
+            router.replace(`/result?invite=${encodeURIComponent(inviteToken)}`);
+            return;
+          }
+
           const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`, { cache: "no-store" });
           if (res.ok) {
             const payload = (await res.json()) as { draft?: InvitationDraft };
@@ -272,6 +278,7 @@ function AcceptPageContent() {
       } catch {
         // Ignore accept metric errors and still continue navigation.
       }
+      markInvitationAccepted(inviteToken);
       router.push(`/result?invite=${encodeURIComponent(inviteToken)}`);
       return;
     }
