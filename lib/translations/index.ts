@@ -58,6 +58,9 @@ export type Translations = {
   mapGeoWarn: string;
   mapMarkerMe: string;
   mapGuest: string;
+  mapNameTitle: string;
+  mapNamePlaceholder: string;
+  mapNameConfirm: string;
 };
 
 // ─── Korean ───────────────────────────────────────────────────────────────────
@@ -119,8 +122,11 @@ const ko: Translations = {
   mapLoading: "불러오는 중...",
   mapLockedTitle: "약속 1시간 전부터 볼 수 있어요",
   mapGeoWarn: "위치 권한이 없어 내 위치는 표시되지 않아요. 다른 분들 위치는 계속 볼 수 있어요.",
-  mapMarkerMe: "★ 나",
+  mapMarkerMe: "나",
   mapGuest: "게스트",
+  mapNameTitle: "이름을 알려주세요",
+  mapNamePlaceholder: "이름 입력...",
+  mapNameConfirm: "확인",
 };
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -182,8 +188,11 @@ const en: Translations = {
   mapLoading: "Loading...",
   mapLockedTitle: "Available 1 hour before the event",
   mapGeoWarn: "Location permission denied. Your location won't be shown, but others' will.",
-  mapMarkerMe: "★ Me",
+  mapMarkerMe: "Me",
   mapGuest: "Guest",
+  mapNameTitle: "What's your name?",
+  mapNamePlaceholder: "Enter name...",
+  mapNameConfirm: "Confirm",
 };
 
 // ─── Japanese ─────────────────────────────────────────────────────────────────
@@ -245,8 +254,11 @@ const ja: Translations = {
   mapLoading: "読み込み中...",
   mapLockedTitle: "約束の1時間前から確認できます",
   mapGeoWarn: "位置情報の権限がないため自分の位置は表示されません。他の方の位置は引き続き確認できます。",
-  mapMarkerMe: "★ 自分",
+  mapMarkerMe: "自分",
   mapGuest: "ゲスト",
+  mapNameTitle: "お名前を教えてください",
+  mapNamePlaceholder: "名前を入力...",
+  mapNameConfirm: "確認",
 };
 
 // ─── Chinese (Simplified) ─────────────────────────────────────────────────────
@@ -308,8 +320,11 @@ const zh: Translations = {
   mapLoading: "加载中...",
   mapLockedTitle: "约定时间前1小时可以查看",
   mapGeoWarn: "无位置权限，无法显示您的位置。仍可查看其他人的位置。",
-  mapMarkerMe: "★ 我",
+  mapMarkerMe: "我",
   mapGuest: "访客",
+  mapNameTitle: "请输入您的名字",
+  mapNamePlaceholder: "输入名字...",
+  mapNameConfirm: "确认",
 };
 
 // ─── Indonesian ───────────────────────────────────────────────────────────────
@@ -371,8 +386,11 @@ const id: Translations = {
   mapLoading: "Memuat...",
   mapLockedTitle: "Tersedia 1 jam sebelum acara",
   mapGeoWarn: "Izin lokasi ditolak. Lokasi Anda tidak akan ditampilkan, tetapi lokasi orang lain tetap terlihat.",
-  mapMarkerMe: "★ Saya",
+  mapMarkerMe: "Saya",
   mapGuest: "Tamu",
+  mapNameTitle: "Siapa nama Anda?",
+  mapNamePlaceholder: "Masukkan nama...",
+  mapNameConfirm: "Konfirmasi",
 };
 
 // ─── Spanish ──────────────────────────────────────────────────────────────────
@@ -434,8 +452,11 @@ const es: Translations = {
   mapLoading: "Cargando...",
   mapLockedTitle: "Disponible 1 hora antes del evento",
   mapGeoWarn: "Sin permiso de ubicación. Tu posición no se mostrará, pero podrás ver la de los demás.",
-  mapMarkerMe: "★ Yo",
+  mapMarkerMe: "Yo",
   mapGuest: "Invitado",
+  mapNameTitle: "¿Cómo te llamas?",
+  mapNamePlaceholder: "Escribe tu nombre...",
+  mapNameConfirm: "Confirmar",
 };
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -497,8 +518,11 @@ const ar: Translations = {
   mapLoading: "جارٍ التحميل...",
   mapLockedTitle: "متاح قبل ساعة من الموعد",
   mapGeoWarn: "لا يوجد إذن للموقع. لن يظهر موقعك، لكن يمكنك رؤية مواقع الآخرين.",
-  mapMarkerMe: "★ أنا",
+  mapMarkerMe: "أنا",
   mapGuest: "ضيف",
+  mapNameTitle: "ما اسمك؟",
+  mapNamePlaceholder: "أدخل اسمك...",
+  mapNameConfirm: "تأكيد",
 };
 
 // ─── French ───────────────────────────────────────────────────────────────────
@@ -560,8 +584,11 @@ const fr: Translations = {
   mapLoading: "Chargement...",
   mapLockedTitle: "Disponible 1 heure avant l'événement",
   mapGeoWarn: "Permission de localisation refusée. Votre position ne sera pas affichée, mais vous pouvez voir celle des autres.",
-  mapMarkerMe: "★ Moi",
+  mapMarkerMe: "Moi",
   mapGuest: "Invité",
+  mapNameTitle: "Quel est votre prénom ?",
+  mapNamePlaceholder: "Entrez votre prénom...",
+  mapNameConfirm: "Confirmer",
 };
 
 // ─── Russian ──────────────────────────────────────────────────────────────────
@@ -623,8 +650,11 @@ const ru: Translations = {
   mapLoading: "Загрузка...",
   mapLockedTitle: "Доступно за 1 час до встречи",
   mapGeoWarn: "Нет разрешения на геолокацию. Ваше местоположение не будет отображаться, но вы увидите других.",
-  mapMarkerMe: "★ Я",
+  mapMarkerMe: "Я",
   mapGuest: "Гость",
+  mapNameTitle: "Как вас зовут?",
+  mapNamePlaceholder: "Введите имя...",
+  mapNameConfirm: "Подтвердить",
 };
 
 // ─── Portuguese ───────────────────────────────────────────────────────────────
@@ -686,8 +716,11 @@ const pt: Translations = {
   mapLoading: "Carregando...",
   mapLockedTitle: "Disponível 1 hora antes do evento",
   mapGeoWarn: "Sem permissão de localização. Sua posição não será exibida, mas você verá a dos outros.",
-  mapMarkerMe: "★ Eu",
+  mapMarkerMe: "Eu",
   mapGuest: "Convidado",
+  mapNameTitle: "Qual é o seu nome?",
+  mapNamePlaceholder: "Digite seu nome...",
+  mapNameConfirm: "Confirmar",
 };
 
 // ─── German ───────────────────────────────────────────────────────────────────
@@ -749,8 +782,11 @@ const de: Translations = {
   mapLoading: "Wird geladen...",
   mapLockedTitle: "Verfügbar 1 Stunde vor dem Ereignis",
   mapGeoWarn: "Keine Standortberechtigung. Ihr Standort wird nicht angezeigt, aber Sie sehen die anderen.",
-  mapMarkerMe: "★ Ich",
+  mapMarkerMe: "Ich",
   mapGuest: "Gast",
+  mapNameTitle: "Wie heißen Sie?",
+  mapNamePlaceholder: "Name eingeben...",
+  mapNameConfirm: "Bestätigen",
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────

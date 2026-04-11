@@ -6,6 +6,7 @@ import { useT } from "@/lib/localeContext";
 export type LiveLocation = {
   userId: string;
   userNum: number;
+  name: string;
   lat: number;
   lng: number;
   lastSeen: number;
@@ -73,8 +74,29 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
   const [withinWindow, setWithinWindow] = useState<boolean | null>(null);
   const [msUntilOpen, setMsUntilOpen] = useState<number>(0);
   const [hasGeo, setHasGeo] = useState(true);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [nameInput, setNameInput] = useState("");
   const myLatLngRef = useRef<[number, number] | null>(null);
+  const nameRef = useRef("");
   const t = useT();
+
+  /* ── localStorage에서 이름 로드 ── */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`loc-name-${invitationId}`);
+      if (saved !== null) {
+        setDisplayName(saved);
+        nameRef.current = saved;
+      }
+    } catch {}
+  }, [invitationId]);
+
+  function confirmName() {
+    const name = nameInput.trim();
+    try { localStorage.setItem(`loc-name-${invitationId}`, name); } catch {}
+    nameRef.current = name;
+    setDisplayName(name);
+  }
 
   /* ── 시간 게이트 (10초마다 갱신) ── */
   useEffect(() => {
@@ -138,7 +160,7 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
       fetch(`/api/invitations/${invitationId}/location`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: myUserId, lat, lng }),
+        body: JSON.stringify({ userId: myUserId, lat, lng, name: nameRef.current }),
       }).catch(() => {});
     }
 
@@ -182,13 +204,15 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
           iconAnchor: [13, 13],
         });
 
+        const popupText = isMe ? t.mapMarkerMe : (loc.name || `${t.mapGuest} ${loc.userNum}`);
         const existing = markersRef.current.get(loc.userId);
         if (existing) {
           existing.setLatLng([loc.lat, loc.lng]);
           existing.setIcon(icon);
+          existing.setPopupContent(popupText);
         } else {
           const m = L.marker([loc.lat, loc.lng], { icon })
-            .bindPopup(isCreator ? t.mapMarkerMe : `${t.mapGuest} ${loc.userNum}`)
+            .bindPopup(popupText)
             .addTo(map);
           markersRef.current.set(loc.userId, m);
         }
@@ -252,6 +276,25 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
       {withinWindow === null && (
         <div className="map-overlay map-loading">
           <span>{t.mapLoading}</span>
+        </div>
+      )}
+
+      {/* 이름 입력 오버레이 */}
+      {withinWindow === true && displayName === null && (
+        <div className="map-overlay map-name-prompt" onClick={(e) => e.stopPropagation()}>
+          <p className="map-name-title">{t.mapNameTitle}</p>
+          <input
+            className="map-name-field"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            placeholder={t.mapNamePlaceholder}
+            maxLength={20}
+            onKeyDown={(e) => { if (e.key === "Enter") confirmName(); }}
+            autoFocus
+          />
+          <button className="map-name-confirm" onClick={confirmName}>
+            {t.mapNameConfirm}
+          </button>
         </div>
       )}
 

@@ -15,7 +15,7 @@ export async function POST(
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
-  const { userId, lat, lng } = body as Record<string, unknown>;
+  const { userId, lat, lng, name } = body as Record<string, unknown>;
   if (
     typeof userId !== "string" ||
     !userId ||
@@ -27,7 +27,8 @@ export async function POST(
     return NextResponse.json({ error: "invalid fields" }, { status: 400 });
   }
 
-  const entry = upsertLocation(params.id, userId, lat, lng);
+  const safeName = typeof name === "string" ? name.slice(0, 20) : "";
+  const entry = upsertLocation(params.id, userId, lat, lng, safeName);
   return NextResponse.json(entry);
 }
 

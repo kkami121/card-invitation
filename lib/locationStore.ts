@@ -6,6 +6,7 @@
 export type LocationEntry = {
   userId: string;
   userNum: number;
+  name: string;
   lat: number;
   lng: number;
   lastSeen: number; // Unix ms
@@ -23,7 +24,8 @@ export function upsertLocation(
   invId: string,
   userId: string,
   lat: number,
-  lng: number
+  lng: number,
+  name = ""
 ): LocationEntry {
   if (!storeMap.has(invId)) {
     storeMap.set(invId, { nextNum: 1, users: new Map() });
@@ -35,12 +37,14 @@ export function upsertLocation(
     entry = {
       userId,
       userNum: inv.nextNum,
+      name,
       lat,
       lng,
       lastSeen: Date.now(),
     };
     inv.nextNum++;
   } else {
+    if (name) entry.name = name;
     entry.lat = lat;
     entry.lng = lng;
     entry.lastSeen = Date.now();
