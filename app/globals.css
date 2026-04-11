@@ -472,3 +472,155 @@ button {
   padding: 8px 10px;
   border-radius: 999px;
 }
+
+/* ── 카드 뒤집기 (3D flip) ─────────────────────────────────────── */
+
+.flip-card {
+  perspective: 1200px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/*
+ * CSS Grid 방식: 두 면을 같은 셀에 쌓아서
+ * 앞면 높이가 자동으로 전체 카드 높이를 결정합니다.
+ */
+.flip-card-inner {
+  display: grid;
+  transition: transform 0.55s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  transform-style: preserve-3d;
+}
+
+.flip-card.is-flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+/* 두 면 모두 같은 그리드 셀 1행 1열 */
+.flip-card-face {
+  grid-row: 1;
+  grid-column: 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  min-width: 0;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 앞면 플립 힌트 */
+.flip-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 2px;
+  font-size: 12px;
+  color: #8a7966;
+}
+
+/* ── 지도 패널 (뒷면 전체 채우기) ───────────────────────────────── */
+
+.map-panel {
+  flex: 1;                       /* flip-card-back의 남은 공간 모두 차지 */
+  min-height: 0;                 /* flex 부모 높이 초과 방지 */
+  background: var(--card, #fffdf8);
+  border: 1px solid var(--line, #ddd2c2);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 30px rgba(67, 53, 40, 0.14);
+}
+
+.map-panel-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--card, #fffdf8);
+  border-bottom: 1px solid var(--line, #ddd2c2);
+}
+
+.map-panel-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--paper-ink, #2f2a24);
+}
+
+.map-panel-back {
+  font-size: 0.82rem;
+  color: #8a7966;
+}
+
+/* ── MapView 내부 레이아웃 ───────────────────────────────────────── */
+
+/*
+ * map-container는 항상 DOM에 있어야 합니다.
+ * 잠금/로딩 상태는 absolute overlay로 덮습니다.
+ */
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;                 /* 앞면 높이를 초과하지 않도록 */
+  overflow: hidden;
+}
+
+.map-container {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.map-geo-warn {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 8px 14px;
+  background: #fff8e1;
+  font-size: 11px;
+  color: #6e5c2e;
+  line-height: 1.4;
+}
+
+/* 오버레이 (로딩 / 잠금) */
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  background: var(--card, #fffdf8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.map-loading {
+  font-size: 0.9rem;
+  color: var(--paper-muted, #756d63);
+}
+
+.map-locked-icon {
+  font-size: 36px;
+}
+
+.map-locked-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--paper-ink, #2f2a24);
+}
+
+.map-locked-sub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--paper-muted, #756d63);
+}

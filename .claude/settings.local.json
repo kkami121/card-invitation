@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cmd.exe /c \"npm install leaflet @types/leaflet\")",
+      "Bash(cmd.exe /c \"cd C:\\\\\\\\Users\\\\\\\\BOSS\\\\\\\\Desktop\\\\\\\\MyProject\\\\\\\\card-invitation && npm install leaflet @types/leaflet 2>&1\")",
+      "Bash(powershell.exe -Command \"cd 'C:\\\\Users\\\\BOSS\\\\Desktop\\\\MyProject\\\\card-invitation'; npm install leaflet '@types/leaflet' 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Program Files\\\\nodejs' | Select-Object Name -First 5\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Program Files' -Filter 'node*' | Select-Object Name\")",
+      "Bash(powershell.exe -Command 'Get-ChildItem env: | Where-Object { $_.Name -like '\\\\''*node*'\\\\'' -or $_.Name -like '\\\\''*NVM*'\\\\'' } | Select-Object Name,Value')",
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\BOSS\\\\AppData\\\\Roaming\\\\nvm' -ErrorAction SilentlyContinue | Select-Object Name -First 5; Get-ChildItem 'C:\\\\Users\\\\BOSS\\\\AppData\\\\Local\\\\nvm' -ErrorAction SilentlyContinue | Select-Object Name -First 5\")",
+      "Bash(powershell.exe -Command \"where.exe node 2>&1; where.exe npm 2>&1\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path 'C:\\\\Users\\\\BOSS' -Filter 'node.exe' -Recurse -ErrorAction SilentlyContinue -Depth 5 | Select-Object FullName | Select-Object -First 5\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem -Path 'C:\\\\Program Files' -Filter 'node.exe' -Recurse -ErrorAction SilentlyContinue -Depth 3 | Select-Object FullName | Select-Object -First 5\")",
+      "Bash(powershell.exe -Command '$env:PATH -split '\\\\'';'\\\\'' | Where-Object { $_ -like '\\\\''*node*'\\\\'' -or $_ -like '\\\\''*npm*'\\\\'' }')",
+      "Bash(powershell.exe -Command \"ls C:\\\\\\\\\")",
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\BOSS\\\\Desktop\\\\MyProject\\\\card-invitation\\\\node_modules\\\\.bin' | Select-Object Name -First 10\")",
+      "Bash(powershell.exe -Command 'ls '\\\\''C:\\\\Users\\\\BOSS\\\\AppData\\\\Local\\\\Programs\\\\Microsoft VS Code\\\\resources\\\\app\\\\node_modules'\\\\'' -ErrorAction SilentlyContinue | Select-Object Name -First 3; ls '\\\\''C:\\\\Users\\\\BOSS\\\\AppData\\\\Local\\\\Programs\\\\Microsoft VS Code'\\\\'' | Where-Object { $_.Name -like '\\\\''*.exe'\\\\'' } | Select-Object Name')",
+      "Bash(xargs ls:*)"
+    ]
+  }
+}

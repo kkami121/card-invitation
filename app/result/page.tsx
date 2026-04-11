@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import InvitationCard from "@/components/InvitationCard";
 import TopBannerAd from "@/components/TopBannerAd";
 import { normalizeAcceptMode } from "@/lib/acceptModes";
@@ -10,6 +11,11 @@ import { initialInvitationState, loadInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
 import styles from "./result.module.css";
+
+const FlippableCard = dynamic(() => import("@/components/FlippableCard"), {
+  ssr: false,
+  loading: () => null,
+});
 
 function ResultPageContent() {
   const router = useRouter();
@@ -96,7 +102,15 @@ function ResultPageContent() {
   return (
     <main className={`mobile-shell stack ${styles.resultShell}`}>
       <TopBannerAd className="ad-top" accentColor={THEMES[state.draft.themeKey].accent} />
-      <InvitationCard draft={state.draft} photoNoticeText={t.photoNotice} />
+      {inviteToken ? (
+        <FlippableCard
+          draft={state.draft}
+          photoNoticeText={t.photoNotice}
+          invitationId={inviteToken}
+        />
+      ) : (
+        <InvitationCard draft={state.draft} photoNoticeText={t.photoNotice} />
+      )}
       <button
         className="btn-primary"
         style={{ width: "100%", background: THEMES[state.draft.themeKey].accent }}
