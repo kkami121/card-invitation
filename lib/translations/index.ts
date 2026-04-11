@@ -49,6 +49,15 @@ export type Translations = {
   adAcceptedCount: string;
   adClose: string;
   adEmailCopied: string;
+
+  // map / flip card
+  mapTitle: string;
+  mapBackToCard: string;
+  mapLoading: string;
+  mapLockedTitle: string;
+  mapGeoWarn: string;
+  mapMarkerMe: string;
+  mapGuest: string;
 };
 
 // ─── Korean ───────────────────────────────────────────────────────────────────
@@ -105,6 +114,13 @@ const ko: Translations = {
   adAcceptedCount: "초대장을 수락한 사용자 수:",
   adClose: "닫기",
   adEmailCopied: "복사 완료",
+  mapTitle: "📍 실시간 위치",
+  mapBackToCard: "카드 보기",
+  mapLoading: "불러오는 중...",
+  mapLockedTitle: "약속 1시간 전부터 볼 수 있어요",
+  mapGeoWarn: "위치 권한이 없어 내 위치는 표시되지 않아요. 다른 분들 위치는 계속 볼 수 있어요.",
+  mapMarkerMe: "★ 나",
+  mapGuest: "게스트",
 };
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -161,6 +177,13 @@ const en: Translations = {
   adAcceptedCount: "Invitations accepted:",
   adClose: "Close",
   adEmailCopied: "Copied!",
+  mapTitle: "📍 Live Location",
+  mapBackToCard: "View Card",
+  mapLoading: "Loading...",
+  mapLockedTitle: "Available 1 hour before the event",
+  mapGeoWarn: "Location permission denied. Your location won't be shown, but others' will.",
+  mapMarkerMe: "★ Me",
+  mapGuest: "Guest",
 };
 
 // ─── Japanese ─────────────────────────────────────────────────────────────────
@@ -217,6 +240,13 @@ const ja: Translations = {
   adAcceptedCount: "招待を承認したユーザー数:",
   adClose: "閉じる",
   adEmailCopied: "コピーしました",
+  mapTitle: "📍 リアルタイム位置",
+  mapBackToCard: "カードを見る",
+  mapLoading: "読み込み中...",
+  mapLockedTitle: "約束の1時間前から確認できます",
+  mapGeoWarn: "位置情報の権限がないため自分の位置は表示されません。他の方の位置は引き続き確認できます。",
+  mapMarkerMe: "★ 自分",
+  mapGuest: "ゲスト",
 };
 
 // ─── Chinese (Simplified) ─────────────────────────────────────────────────────
@@ -273,6 +303,13 @@ const zh: Translations = {
   adAcceptedCount: "已接受邀请的用户数:",
   adClose: "关闭",
   adEmailCopied: "已复制",
+  mapTitle: "📍 实时位置",
+  mapBackToCard: "查看邀请卡",
+  mapLoading: "加载中...",
+  mapLockedTitle: "约定时间前1小时可以查看",
+  mapGeoWarn: "无位置权限，无法显示您的位置。仍可查看其他人的位置。",
+  mapMarkerMe: "★ 我",
+  mapGuest: "访客",
 };
 
 // ─── Indonesian ───────────────────────────────────────────────────────────────
@@ -329,6 +366,13 @@ const id: Translations = {
   adAcceptedCount: "Undangan diterima:",
   adClose: "Tutup",
   adEmailCopied: "Disalin!",
+  mapTitle: "📍 Lokasi Real-time",
+  mapBackToCard: "Lihat Kartu",
+  mapLoading: "Memuat...",
+  mapLockedTitle: "Tersedia 1 jam sebelum acara",
+  mapGeoWarn: "Izin lokasi ditolak. Lokasi Anda tidak akan ditampilkan, tetapi lokasi orang lain tetap terlihat.",
+  mapMarkerMe: "★ Saya",
+  mapGuest: "Tamu",
 };
 
 // ─── Spanish ──────────────────────────────────────────────────────────────────
@@ -385,6 +429,13 @@ const es: Translations = {
   adAcceptedCount: "Invitaciones aceptadas:",
   adClose: "Cerrar",
   adEmailCopied: "¡Copiado!",
+  mapTitle: "📍 Ubicación en tiempo real",
+  mapBackToCard: "Ver tarjeta",
+  mapLoading: "Cargando...",
+  mapLockedTitle: "Disponible 1 hora antes del evento",
+  mapGeoWarn: "Sin permiso de ubicación. Tu posición no se mostrará, pero podrás ver la de los demás.",
+  mapMarkerMe: "★ Yo",
+  mapGuest: "Invitado",
 };
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -441,6 +492,13 @@ const ar: Translations = {
   adAcceptedCount: "الدعوات المقبولة:",
   adClose: "إغلاق",
   adEmailCopied: "تم النسخ!",
+  mapTitle: "📍 الموقع الآني",
+  mapBackToCard: "عرض البطاقة",
+  mapLoading: "جارٍ التحميل...",
+  mapLockedTitle: "متاح قبل ساعة من الموعد",
+  mapGeoWarn: "لا يوجد إذن للموقع. لن يظهر موقعك، لكن يمكنك رؤية مواقع الآخرين.",
+  mapMarkerMe: "★ أنا",
+  mapGuest: "ضيف",
 };
 
 // ─── French ───────────────────────────────────────────────────────────────────
@@ -497,6 +555,13 @@ const fr: Translations = {
   adAcceptedCount: "Invitations acceptées :",
   adClose: "Fermer",
   adEmailCopied: "Copié !",
+  mapTitle: "📍 Position en direct",
+  mapBackToCard: "Voir la carte",
+  mapLoading: "Chargement...",
+  mapLockedTitle: "Disponible 1 heure avant l'événement",
+  mapGeoWarn: "Permission de localisation refusée. Votre position ne sera pas affichée, mais vous pouvez voir celle des autres.",
+  mapMarkerMe: "★ Moi",
+  mapGuest: "Invité",
 };
 
 // ─── Russian ──────────────────────────────────────────────────────────────────
@@ -553,6 +618,13 @@ const ru: Translations = {
   adAcceptedCount: "Принято приглашений:",
   adClose: "Закрыть",
   adEmailCopied: "Скопировано!",
+  mapTitle: "📍 Местоположение в реальном времени",
+  mapBackToCard: "Смотреть карточку",
+  mapLoading: "Загрузка...",
+  mapLockedTitle: "Доступно за 1 час до встречи",
+  mapGeoWarn: "Нет разрешения на геолокацию. Ваше местоположение не будет отображаться, но вы увидите других.",
+  mapMarkerMe: "★ Я",
+  mapGuest: "Гость",
 };
 
 // ─── Portuguese ───────────────────────────────────────────────────────────────
@@ -609,6 +681,13 @@ const pt: Translations = {
   adAcceptedCount: "Convites aceitos:",
   adClose: "Fechar",
   adEmailCopied: "Copiado!",
+  mapTitle: "📍 Localização em tempo real",
+  mapBackToCard: "Ver cartão",
+  mapLoading: "Carregando...",
+  mapLockedTitle: "Disponível 1 hora antes do evento",
+  mapGeoWarn: "Sem permissão de localização. Sua posição não será exibida, mas você verá a dos outros.",
+  mapMarkerMe: "★ Eu",
+  mapGuest: "Convidado",
 };
 
 // ─── German ───────────────────────────────────────────────────────────────────
@@ -665,6 +744,13 @@ const de: Translations = {
   adAcceptedCount: "Angenommene Einladungen:",
   adClose: "Schließen",
   adEmailCopied: "Kopiert!",
+  mapTitle: "📍 Echtzeit-Standort",
+  mapBackToCard: "Karte ansehen",
+  mapLoading: "Wird geladen...",
+  mapLockedTitle: "Verfügbar 1 Stunde vor dem Ereignis",
+  mapGeoWarn: "Keine Standortberechtigung. Ihr Standort wird nicht angezeigt, aber Sie sehen die anderen.",
+  mapMarkerMe: "★ Ich",
+  mapGuest: "Gast",
 };
 
 // ─── Exports ──────────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import InvitationCard from "./InvitationCard";
+import { useT } from "@/lib/localeContext";
 import { InvitationDraft } from "@/lib/types";
 
 // Leaflet은 SSR 불가 → dynamic import
@@ -50,6 +51,7 @@ export default function FlippableCard({ draft, photoNoticeText, invitationId }: 
   const [flipped, setFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const backRef = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   const eventDateTime = parseEventDateTime(draft.date, draft.time);
 
@@ -74,14 +76,15 @@ export default function FlippableCard({ draft, photoNoticeText, invitationId }: 
         {/* ── 앞면: 초대 카드 ── */}
         <div className="flip-card-face flip-card-front">
           <InvitationCard draft={draft} photoNoticeText={photoNoticeText} />
+          <div className="flip-card-click-hint">Click!</div>
         </div>
 
         {/* ── 뒷면: 실시간 지도 ── */}
         <div className="flip-card-face flip-card-back" ref={backRef}>
           <div className="map-panel">
             <div className="map-panel-header" onClick={(e) => { e.stopPropagation(); setFlipped(false); }}>
-              <span className="map-panel-title">📍 실시간 위치</span>
-              <span className="map-panel-back">← 카드 보기</span>
+              <span className="map-panel-title">{t.mapTitle}</span>
+              <span className="map-panel-back">{t.mapBackToCard}</span>
             </div>
 
             {userId && (

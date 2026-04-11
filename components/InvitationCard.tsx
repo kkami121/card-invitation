@@ -104,7 +104,7 @@ export default function InvitationCard({ draft, photoNoticeText }: Props) {
   }
 
   return (
-    <article className="paper-panel" style={{ padding: 20 }}>
+    <article className="paper-panel" style={{ padding: "20px 20px 10px" }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
         <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{draft.emojis || theme.emojis.join(" ")}</p>
         <h1 className={theme.titleClassName} style={{ color: theme.accent, fontSize: 44, margin: "8px 0 0" }}>

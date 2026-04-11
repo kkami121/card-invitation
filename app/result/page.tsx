@@ -113,7 +113,7 @@ function ResultPageContent() {
       )}
       <button
         className="btn-primary"
-        style={{ width: "100%", background: THEMES[state.draft.themeKey].accent }}
+        style={{ width: "100%", background: THEMES[state.draft.themeKey].accent, marginTop: 5 }}
         onClick={() => router.push("/create")}
       >
         {t.createOwn}

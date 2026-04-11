@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/localeContext";
 
 export type LiveLocation = {
   userId: string;
@@ -71,6 +72,8 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
   const [withinWindow, setWithinWindow] = useState<boolean | null>(null);
   const [msUntilOpen, setMsUntilOpen] = useState<number>(0);
   const [hasGeo, setHasGeo] = useState(true);
+  const myLatLngRef = useRef<[number, number] | null>(null);
+  const t = useT();
 
   /* ── 시간 게이트 (10초마다 갱신) ── */
   useEffect(() => {
@@ -92,9 +95,12 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
 
     loadLeaflet().then((L) => {
       if (destroyed || !containerRef.current || mapRef.current) return;
-      const map = L.map(containerRef.current, { zoomControl: true, attributionControl: false });
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-      map.setView([37.5665, 126.978], 12);
+      const map = L.map(containerRef.current, { zoomControl: false, attributionControl: false });
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        subdomains: "abcd",
+      }).addTo(map);
+      map.setView([37.5665, 126.978], 9);
       mapRef.current = map;
     });
 
@@ -126,18 +132,24 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
     if (!withinWindow) return;
     if (!navigator.geolocation) { setHasGeo(false); return; }
 
+    function sendLocation(lat: number, lng: number) {
+      myLatLngRef.current = [lat, lng];
+      fetch(`/api/invitations/${invitationId}/location`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: myUserId, lat, lng }),
+      }).catch(() => {});
+    }
+
     const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        fetch(`/api/invitations/${invitationId}/location`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: myUserId, lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        }).catch(() => {});
-      },
+      (pos) => sendLocation(pos.coords.latitude, pos.coords.longitude),
       () => setHasGeo(false),
       { enableHighAccuracy: true, maximumAge: 10_000 }
     );
-    return () => navigator.geolocation.clearWatch(watchId);
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, [withinWindow, invitationId, myUserId]);
 
   /* ── SSE 수신 → 마커 업데이트 ── */
@@ -151,6 +163,8 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
       const locations: LiveLocation[] = JSON.parse(event.data as string);
       const map = mapRef.current;
       const newIds = new Set(locations.map((l) => l.userId));
+      // 마커 추가 전에 체크해야 정확한 "첫 수신" 판단 가능
+      const isFirstData = markersRef.current.size === 0 && locations.length > 0;
 
       locations.forEach((loc) => {
         const isMe = loc.userId === myUserId;
@@ -161,9 +175,9 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
 
         const icon = L.divIcon({
           className: "",
-          html: `<div style="width:34px;height:34px;border-radius:50%;background:${color};border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;opacity:${opacity};box-shadow:0 2px 8px rgba(0,0,0,0.3);${ring}">${label}</div>`,
-          iconSize: [34, 34],
-          iconAnchor: [17, 17],
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;opacity:${opacity};box-shadow:0 2px 8px rgba(0,0,0,0.3);${ring}">${label}</div>`,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
         });
 
         const existing = markersRef.current.get(loc.userId);
@@ -172,7 +186,7 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
           existing.setIcon(icon);
         } else {
           const m = L.marker([loc.lat, loc.lng], { icon })
-            .bindPopup(isMe ? "★ Me" : `Guest ${loc.userNum}`)
+            .bindPopup(isMe ? t.mapMarkerMe : `${t.mapGuest} ${loc.userNum}`)
             .addTo(map);
           markersRef.current.set(loc.userId, m);
         }
@@ -182,9 +196,9 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
         if (!newIds.has(id)) { m.remove(); markersRef.current.delete(id); }
       });
 
-      if (locations.length > 0) {
+      if (isFirstData) {
         const bounds = L.latLngBounds(locations.map((l) => [l.lat, l.lng] as [number, number]));
-        map.fitBounds(bounds, { padding: [48, 48], maxZoom: 16, animate: true });
+        map.fitBounds(bounds, { padding: [48, 48], maxZoom: 14, animate: true });
       }
     };
 
@@ -196,26 +210,46 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
      잠금/로딩 상태는 absolute overlay로 덮습니다.
   */
   const totalMin = Math.round(msUntilOpen / 60_000);
-  const countdown = totalMin >= 60
-    ? `${Math.floor(totalMin / 60)}시간 ${totalMin % 60}분 후`
-    : `${totalMin}분 후`;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  const countdown = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
   return (
     <div className="map-wrapper">
       {/* 지도 컨테이너 — 항상 렌더 */}
       <div ref={containerRef} className="map-container" />
 
+      {/* 내 위치로 이동 버튼 */}
+      {withinWindow && hasGeo && (
+        <button
+          className="map-my-location-btn"
+          onClick={() => {
+            if (myLatLngRef.current && mapRef.current) {
+              mapRef.current.setView(myLatLngRef.current, 14, { animate: true });
+            }
+          }}
+          aria-label="내 위치로 이동"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" fill="#3a3a3a" stroke="none"/>
+            <circle cx="12" cy="12" r="8" stroke="#3a3a3a" />
+            <line x1="12" y1="2"  x2="12" y2="4"  stroke="#3a3a3a" />
+            <line x1="12" y1="20" x2="12" y2="22" stroke="#3a3a3a" />
+            <line x1="2"  y1="12" x2="4"  y2="12" stroke="#3a3a3a" />
+            <line x1="20" y1="12" x2="22" y2="12" stroke="#3a3a3a" />
+          </svg>
+        </button>
+      )}
+
       {/* 위치권한 없음 경고 */}
       {!hasGeo && withinWindow && (
-        <div className="map-geo-warn">
-          위치 권한이 없어 내 위치는 표시되지 않아요. 다른 분들 위치는 계속 볼 수 있어요.
-        </div>
+        <div className="map-geo-warn">{t.mapGeoWarn}</div>
       )}
 
       {/* 로딩 오버레이 */}
       {withinWindow === null && (
         <div className="map-overlay map-loading">
-          <span>불러오는 중...</span>
+          <span>{t.mapLoading}</span>
         </div>
       )}
 
@@ -223,7 +257,7 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
       {withinWindow === false && (
         <div className="map-overlay map-locked">
           <div className="map-locked-icon">📍</div>
-          <p className="map-locked-title">약속 1시간 전부터 볼 수 있어요</p>
+          <p className="map-locked-title">{t.mapLockedTitle}</p>
           <p className="map-locked-sub">{countdown}</p>
         </div>
       )}

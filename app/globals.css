@@ -476,7 +476,6 @@ button {
 /* ── 카드 뒤집기 (3D flip) ─────────────────────────────────────── */
 
 .flip-card {
-  perspective: 1200px;
   cursor: pointer;
   user-select: none;
 }
@@ -484,6 +483,10 @@ button {
 /*
  * CSS Grid 방식: 두 면을 같은 셀에 쌓아서
  * 앞면 높이가 자동으로 전체 카드 높이를 결정합니다.
+ *
+ * perspective를 CSS property 대신 transform 함수에 포함시킵니다.
+ * CSS property 방식은 브라우저가 perspective 컨테이너의 overflow를
+ * 3D 공간 기준으로 계산하여 회전 중 스크롤 영역이 늘어나는 문제가 있습니다.
  */
 .flip-card-inner {
   display: grid;
@@ -510,14 +513,20 @@ button {
   flex-direction: column;
 }
 
-/* 앞면 플립 힌트 */
-.flip-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0 2px;
-  font-size: 12px;
+/* 앞면 우측 상단 클릭 힌트 — 카드 안 절대 위치 */
+.flip-card-front {
+  position: relative;
+}
+
+.flip-card-click-hint {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #8a7966;
+  letter-spacing: 0.04em;
+  pointer-events: none;
 }
 
 /* ── 지도 패널 (뒷면 전체 채우기) ───────────────────────────────── */
@@ -575,6 +584,31 @@ button {
   flex: 1;
   width: 100%;
   min-height: 0;
+}
+
+.map-my-location-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 500;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line, #ddd2c2);
+  background: var(--card, #fffdf8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.map-my-location-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
 }
 
 .map-geo-warn {
