@@ -6,12 +6,12 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { draft?: InvitationDraft };
+    const body = (await req.json()) as { draft?: InvitationDraft; creatorUserId?: string };
     if (!body?.draft) {
       return NextResponse.json({ message: "draft is required" }, { status: 400 });
     }
 
-    const created = await createInvitation(body.draft);
+    const created = await createInvitation(body.draft, body.creatorUserId);
     return NextResponse.json({ id: created.id });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown-error";

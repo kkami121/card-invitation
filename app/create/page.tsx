@@ -29,6 +29,20 @@ const THEME_MONTH_DAY: Partial<Record<OccasionKey, { month: number; day: number 
   chuseok: { month: 9, day: 25 },
 };
 
+function getOrCreateUserId(): string {
+  try {
+    const KEY = "loc-uid";
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch {
+    return `anon-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
 function formatDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -443,7 +457,7 @@ export default function CreatePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ draft: nextDraft }),
+        body: JSON.stringify({ draft: nextDraft, creatorUserId: getOrCreateUserId() }),
       });
       if (!res.ok) {
         let message = "failed";

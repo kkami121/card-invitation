@@ -20,6 +20,7 @@ type Props = {
   draft: InvitationDraft;
   photoNoticeText?: string;
   invitationId: string;
+  creatorUserId?: string;
 };
 
 function getOrCreateUserId(): string {
@@ -47,7 +48,7 @@ function parseEventDateTime(date: string, time: string): Date | null {
   return new Date(y, m - 1, d, h, min, 0);
 }
 
-export default function FlippableCard({ draft, photoNoticeText, invitationId }: Props) {
+export default function FlippableCard({ draft, photoNoticeText, invitationId, creatorUserId }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const backRef = useRef<HTMLDivElement>(null);
@@ -91,6 +92,7 @@ export default function FlippableCard({ draft, photoNoticeText, invitationId }: 
               <MapView
                 invitationId={invitationId}
                 myUserId={userId}
+                creatorUserId={creatorUserId}
                 eventDateTime={eventDateTime}
                 visible={flipped}
               />

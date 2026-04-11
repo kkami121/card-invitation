@@ -25,6 +25,7 @@ function ResultPageContent() {
   const [state, setState] = useState(initialInvitationState);
   const [ready, setReady] = useState(false);
   const [invitationMissing, setInvitationMissing] = useState(false);
+  const [creatorUserId, setCreatorUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     async function init() {
@@ -32,7 +33,7 @@ function ResultPageContent() {
         if (inviteToken) {
           const res = await fetch(`/api/invitations/${encodeURIComponent(inviteToken)}`, { cache: "no-store" });
           if (res.ok) {
-            const payload = (await res.json()) as { draft?: InvitationDraft };
+            const payload = (await res.json()) as { draft?: InvitationDraft; creatorUserId?: string };
             if (payload?.draft) {
               const normalizedDraft: InvitationDraft = {
                 ...initialInvitationState.draft,
@@ -44,6 +45,7 @@ function ResultPageContent() {
                 accepted: true,
                 noAttempts: 0,
               });
+              setCreatorUserId(payload.creatorUserId);
               return;
             }
           }
@@ -107,6 +109,7 @@ function ResultPageContent() {
           draft={state.draft}
           photoNoticeText={t.photoNotice}
           invitationId={inviteToken}
+          creatorUserId={creatorUserId}
         />
       ) : (
         <InvitationCard draft={state.draft} photoNoticeText={t.photoNotice} />

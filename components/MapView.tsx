@@ -15,6 +15,7 @@ export type LiveLocation = {
 type Props = {
   invitationId: string;
   myUserId: string;
+  creatorUserId?: string;
   eventDateTime: Date | null;
   /** 카드가 뒤집혀 지도가 보이는 상태 */
   visible: boolean;
@@ -62,7 +63,7 @@ declare global {
   }
 }
 
-export default function MapView({ invitationId, myUserId, eventDateTime, visible }: Props) {
+export default function MapView({ invitationId, myUserId, creatorUserId, eventDateTime, visible }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -168,10 +169,11 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
 
       locations.forEach((loc) => {
         const isMe = loc.userId === myUserId;
+        const isCreator = creatorUserId ? loc.userId === creatorUserId : false;
         const color = markerColor(loc.userNum);
         const opacity = loc.isActive ? 1 : 0.45;
         const ring = isMe ? `outline:3px solid ${color};outline-offset:2px;` : "";
-        const label = isMe ? "★" : String(loc.userNum);
+        const label = isCreator ? "★" : String(loc.userNum);
 
         const icon = L.divIcon({
           className: "",
@@ -186,7 +188,7 @@ export default function MapView({ invitationId, myUserId, eventDateTime, visible
           existing.setIcon(icon);
         } else {
           const m = L.marker([loc.lat, loc.lng], { icon })
-            .bindPopup(isMe ? t.mapMarkerMe : `${t.mapGuest} ${loc.userNum}`)
+            .bindPopup(isCreator ? t.mapMarkerMe : `${t.mapGuest} ${loc.userNum}`)
             .addTo(map);
           markersRef.current.set(loc.userId, m);
         }

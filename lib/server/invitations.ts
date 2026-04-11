@@ -10,6 +10,7 @@ type StoredInvitation = {
   createdAt: number;
   acceptedAt?: number;
   acceptedCount?: number;
+  creatorUserId?: string;
   draft: InvitationDraft;
 };
 
@@ -201,7 +202,7 @@ async function writeFileAtomic(filepath: string, content: Buffer): Promise<void>
   await fs.rename(tempPath, filepath);
 }
 
-export async function createInvitation(draft: InvitationDraft): Promise<StoredInvitation> {
+export async function createInvitation(draft: InvitationDraft, creatorUserId?: string): Promise<StoredInvitation> {
   const id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
   const prepared = await prepareStoreAndStats();
   const store = prepared.store;
@@ -224,6 +225,7 @@ export async function createInvitation(draft: InvitationDraft): Promise<StoredIn
   const saved: StoredInvitation = {
     id,
     createdAt: Date.now(),
+    ...(creatorUserId ? { creatorUserId } : {}),
     draft: {
       themeKey: draft.themeKey,
       acceptMode: normalizeAcceptMode(draft.acceptMode),
