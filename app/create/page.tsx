@@ -2,8 +2,11 @@
 
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import DateInput from "@/components/DateInput";
+import TimeInput from "@/components/TimeInput";
 import TopBannerAd from "@/components/TopBannerAd";
 import { pickRandomAcceptMode } from "@/lib/acceptModes";
+import { useLocale, useT } from "@/lib/localeContext";
 import { initialInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft, OccasionKey } from "@/lib/types";
@@ -11,7 +14,6 @@ import styles from "./create.module.css";
 
 const SWIPE_THRESHOLD = 70;
 const ANIMATION_MS = 220;
-const PLACE_PLACEHOLDERS = ["홍대입구역", "성수역", "여의도한강공원", "잠실 롯데월드몰", "광화문 광장"];
 const CLIENT_IMAGE_MAX_SIDE = 1280;
 const CLIENT_IMAGE_QUALITY = 0.82;
 const MAX_UPLOAD_FILE_BYTES = 12 * 1024 * 1024;
@@ -40,8 +42,8 @@ function formatTime(date: Date): string {
   return `${hours}:${minutes}`;
 }
 
-function getRandomPlacePlaceholder(): string {
-  return PLACE_PLACEHOLDERS[Math.floor(Math.random() * PLACE_PLACEHOLDERS.length)];
+function getRandomFrom(arr: string[]): string {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 function addDays(base: Date, days: number): Date {
@@ -202,6 +204,8 @@ function daysUntilTheme(themeKey: OccasionKey, base: Date): number {
 
 export default function CreatePage() {
   const router = useRouter();
+  const t = useT();
+  const locale = useLocale();
   const now = useMemo(() => new Date(), []);
 
   const [draft, setDraft] = useState<InvitationDraft>(() => ({
@@ -219,7 +223,7 @@ export default function CreatePage() {
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
   const [isDragging, setIsDragging] = useState(false);
   const [titleFontSize, setTitleFontSize] = useState(42);
-  const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomPlacePlaceholder());
+  const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomFrom(t.placePlaceholders));
   const [inviteUrl, setInviteUrl] = useState("");
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -323,7 +327,7 @@ export default function CreatePage() {
       imageUrl: nextTheme.defaultImageUrl,
     }));
 
-    setPlacePlaceholder(getRandomPlacePlaceholder());
+    setPlacePlaceholder(getRandomFrom(t.placePlaceholders));
   }
 
   function animateToTheme(offset: 1 | -1) {
@@ -401,7 +405,7 @@ export default function CreatePage() {
     }
 
     if (file.size > MAX_UPLOAD_FILE_BYTES) {
-      window.alert("이미지 파일이 너무 큽니다. 12MB 이하 파일을 선택해 주세요.");
+      window.alert(t.alertImageTooLarge);
       return;
     }
 
@@ -409,21 +413,21 @@ export default function CreatePage() {
       const dataUrl = await compressImageFile(file);
       updateField("imageUrl", dataUrl || theme.defaultImageUrl);
     } catch {
-      window.alert("이미지 형식이 지원되지 않거나 변환에 실패했습니다. (HEIC는 변환 후 재시도) 다른 사진으로 다시 시도해 주세요.");
+      window.alert(t.alertImageUnsupported);
     }
   }
 
   async function goAccept() {
     const trimmedTitle = draft.title.trim();
     if (!trimmedTitle) {
-      window.alert("제목을 입력해 주세요.");
+      window.alert(t.alertTitleRequired);
       titleInputRef.current?.focus();
       return;
     }
 
     const trimmedPlace = draft.place.trim();
     if (!trimmedPlace) {
-      window.alert("장소를 입력해 주세요.");
+      window.alert(t.alertPlaceRequired);
       placeInputRef.current?.focus();
       return;
     }
@@ -467,18 +471,18 @@ export default function CreatePage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.includes("unsupported image")) {
-        window.alert("이미지 형식이 지원되지 않습니다. JPG, PNG, WebP 이미지를 다시 선택해 주세요.");
+        window.alert(t.alertImageUnsupported);
         return;
       }
       if (message.includes("image optimize")) {
-        window.alert("이미지 처리에 실패했습니다. 다른 이미지를 선택해 다시 시도해 주세요.");
+        window.alert(t.alertImageUnsupported);
         return;
       }
       if (message.includes("payload-too-large")) {
-        window.alert("사진 용량이 너무 큽니다. 더 작은 사진으로 다시 시도해 주세요.");
+        window.alert(t.alertPayloadTooLarge);
         return;
       }
-      window.alert("초대 링크 생성에 실패했습니다. 다시 시도해 주세요.");
+      window.alert(t.alertCreateFailed);
     }
   }
 
@@ -573,7 +577,7 @@ export default function CreatePage() {
             onPointerCancel={handlePointerUp}
             onPointerLeave={handlePointerUp}
           >
-            <h3 className="theme-title">{theme.label}</h3>
+            <h3 className="theme-title">{t.themeLabels[draft.themeKey] ?? theme.label}</h3>
 
             <div style={{ textAlign: "center", marginBottom: 10 }}>
               <input
@@ -596,11 +600,11 @@ export default function CreatePage() {
             <section className="stack" style={{ marginTop: 10 }}>
               <div className="row">
                 <span className="meta-icon" aria-hidden>📅</span>
-                <input className="editable-card-input" type="date" value={draft.date} onChange={(e) => updateField("date", e.target.value)} />
+                <DateInput value={draft.date} onChange={(v) => updateField("date", v)} />
               </div>
               <div className="row">
                 <span className="meta-icon" aria-hidden>🕒</span>
-                <input className="editable-card-input" type="time" value={draft.time} onChange={(e) => updateField("time", e.target.value)} />
+                <TimeInput value={draft.time} onChange={(v) => updateField("time", v)} />
               </div>
               <div className="row">
                 <span className="meta-icon" aria-hidden>📍</span>
@@ -625,37 +629,37 @@ export default function CreatePage() {
               <button className="photo-upload-button" type="button" onClick={() => fileInputRef.current?.click()}>
                 <img src={draft.imageUrl} alt="초대장 사진" />
               </button>
-              <p className="photo-upload-hint">사진을 누르면 이미지를 변경할 수 있습니다.</p>
+              <p className="photo-upload-hint">{t.photoHint}</p>
             </div>
           </article>
         </div>
 
         <button className="btn-primary" style={{ width: "100%", background: theme.accent }} onClick={goAccept}>
-          초대장 보내기
+          {t.sendButton}
         </button>
       </section>
 
       {inviteModalOpen ? (
         <div className={styles.inviteModalBackdrop} onClick={() => setInviteModalOpen(false)} role="presentation">
           <section className={styles.inviteModal} onClick={(event) => event.stopPropagation()}>
-            <h3 className={styles.inviteModalTitle}>초대 링크가 생성되었습니다</h3>
-            <p className={styles.inviteModalDesc}>링크 공유로 초대장을 전달해보세요.</p>
+            <h3 className={styles.inviteModalTitle}>{t.inviteModalTitle}</h3>
+            <p className={styles.inviteModalDesc}>{t.inviteModalDesc}</p>
             <div className={styles.inviteButtons}>
               <button type="button" className="btn-secondary" onClick={copyInviteLink}>
-                링크 복사
+                {t.copyLink}
               </button>
               <button type="button" className="btn-secondary" onClick={shareInviteLink}>
-                링크 공유
+                {t.shareLink}
               </button>
               <button type="button" className="btn-primary" style={{ background: theme.accent }} onClick={goPreviewWithInvite}>
-                미리보기 열기
+                {t.openPreview}
               </button>
             </div>
           </section>
         </div>
       ) : null}
 
-      {linkCopied ? <div className="ad-copy-toast">복사 완료</div> : null}
+      {linkCopied ? <div className="ad-copy-toast">{t.linkCopied}</div> : null}
     </main>
   );
 }

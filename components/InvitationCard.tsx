@@ -1,6 +1,7 @@
 "use client";
 
 import { type SyntheticEvent, useMemo, useRef } from "react";
+import { useLocale, useT } from "@/lib/localeContext";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
 
@@ -9,48 +10,72 @@ type Props = {
   photoNoticeText?: string;
 };
 
-const WEEKDAY_LABELS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
-
-function formatDisplayDate(raw: string): string | null {
+/**
+ * locale에 맞는 날짜 문자열을 반환합니다.
+ * 예) ko → "2026년 4월 11일 토요일"
+ *     en → "Saturday, April 11, 2026"
+ *     ja → "2026年4月11日土曜日"
+ *     zh → "2026年4月11日星期六"
+ */
+function formatDisplayDate(raw: string, locale: string): string | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
-  if (!match) {
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const date = new Date(year, month, day);
+
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return null;
   }
 
-  const [, year, month, day] = match;
-  const date = new Date(Number(year), Number(month) - 1, Number(day));
-  if (
-    date.getFullYear() !== Number(year) ||
-    date.getMonth() !== Number(month) - 1 ||
-    date.getDate() !== Number(day)
-  ) {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+    }).format(date);
+  } catch {
     return null;
   }
-
-  return `${year}년 ${month}월 ${day}일 ${WEEKDAY_LABELS[date.getDay()]}`;
 }
 
-function formatDisplayTime(raw: string): string | null {
+/**
+ * locale에 맞는 시간 문자열을 반환합니다.
+ * 예) ko → "오전 9:30"
+ *     en → "9:30 AM"
+ *     ja → "午前9:30"
+ *     zh → "上午9:30"
+ */
+function formatDisplayTime(raw: string, locale: string): string | null {
   const match = /^(\d{2}):(\d{2})$/.exec(raw);
-  if (!match) {
-    return null;
-  }
+  if (!match) return null;
 
-  const hour24 = Number(match[1]);
+  const hour = Number(match[1]);
   const minute = Number(match[2]);
-  if (!Number.isInteger(hour24) || !Number.isInteger(minute) || hour24 < 0 || hour24 > 23 || minute < 0 || minute > 59) {
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+
+  const date = new Date(2000, 0, 1, hour, minute);
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(date);
+  } catch {
     return null;
   }
-
-  const meridiem = hour24 < 12 ? "오전" : "오후";
-  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  return `${meridiem} ${String(hour12).padStart(2, "0")}시 ${String(minute).padStart(2, "0")}분`;
 }
 
 export default function InvitationCard({ draft, photoNoticeText }: Props) {
+  const locale = useLocale();
+  const t = useT();
   const theme = THEMES[draft.themeKey];
-  const formattedDate = draft.date ? formatDisplayDate(draft.date) : null;
-  const formattedTime = draft.time ? formatDisplayTime(draft.time) : null;
+  const formattedDate = draft.date ? formatDisplayDate(draft.date, locale) : null;
+  const formattedTime = draft.time ? formatDisplayTime(draft.time, locale) : null;
   const retryCountRef = useRef(0);
   const cacheSeedRef = useRef(Date.now());
   const isUploadedImage = draft.imageUrl.startsWith("/uploads/") || draft.imageUrl.startsWith("/api/uploads/");
@@ -90,15 +115,15 @@ export default function InvitationCard({ draft, photoNoticeText }: Props) {
       <section className="stack" style={{ marginTop: 10, gap: 2 }}>
         <div className="row invitation-meta-row">
           <span aria-hidden>📅</span>
-          <p className="meta-text">{formattedDate ?? "날짜를 입력해 주세요."}</p>
+          <p className="meta-text">{formattedDate ?? t.datePlaceholder}</p>
         </div>
         <div className="row invitation-meta-row">
           <span aria-hidden>🕒</span>
-          <p className="meta-text">{formattedTime ?? "시간을 입력해 주세요."}</p>
+          <p className="meta-text">{formattedTime ?? t.timePlaceholder}</p>
         </div>
         <div className="row invitation-meta-row">
           <span aria-hidden>📍</span>
-          <p className="meta-text">{draft.place || "장소를 입력해 주세요."}</p>
+          <p className="meta-text">{draft.place || t.placePlaceholder}</p>
         </div>
       </section>
 

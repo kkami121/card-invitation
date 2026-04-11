@@ -17,15 +17,16 @@ export function normalizeAcceptMode(value: string | null | undefined): AcceptMod
 }
 
 export function pickRandomAcceptMode(): AcceptModeKey {
-  const random = Math.random();
-  if (random < 0.25) {
-    return "accept1";
-  }
-  if (random < 0.5) {
-    return "accept2";
-  }
-  if (random < 0.75) {
-    return "accept3";
-  }
-  return "accept4";
+  return "accept1";
+  // const random = Math.random();
+  // if (random < 0.25) {
+  //   return "accept1";
+  // }
+  // if (random < 0.5) {
+  //   return "accept2";
+  // }
+  // if (random < 0.75) {
+  //   return "accept3";
+  // }
+  // return "accept4";
 }

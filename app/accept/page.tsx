@@ -3,15 +3,12 @@
 import { Suspense, type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_ACCEPT_MODE, normalizeAcceptMode } from "@/lib/acceptModes";
+import { useT } from "@/lib/localeContext";
 import { initialInvitationState, loadInvitationState, saveInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import type { AcceptModeKey, InvitationDraft } from "@/lib/types";
 
 const BASE_ICON = "💌";
-const BASE_HEADING = "초대장이 도착했습니다.";
-const BASE_SUBHEADING = "수락하시겠습니까?";
-const BASE_YES_LABEL = "네! 좋아요";
-const ACCEPT_INVITE_LABEL = "초대 수락하기";
 
 const YES_BUTTON_WIDTH = 140;
 const NO_BUTTON_WIDTH = 120;
@@ -43,6 +40,12 @@ function AcceptPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("invite");
+  const t = useT();
+
+  const BASE_HEADING = t.acceptHeading;
+  const BASE_SUBHEADING = t.acceptSubheading;
+  const BASE_YES_LABEL = t.yesLabel;
+  const ACCEPT_INVITE_LABEL = t.acceptInviteLabel;
 
   const [ready, setReady] = useState(false);
   const [invitationMissing, setInvitationMissing] = useState(false);
@@ -141,6 +144,7 @@ function AcceptPageContent() {
     init();
   }, [inviteToken]);
 
+  /* accept3: 폭탄 카운트다운
   useEffect(() => {
     if (acceptMode !== "accept3" || !bombStarted || bombRemainingMs <= 0) {
       return;
@@ -152,7 +156,9 @@ function AcceptPageContent() {
 
     return () => window.clearTimeout(timeout);
   }, [acceptMode, bombStarted, bombRemainingMs]);
+  */
 
+  /* accept4: 광고 카운트다운
   useEffect(() => {
     if (!adModalOpen || adCountdown <= 0) {
       return;
@@ -164,6 +170,7 @@ function AcceptPageContent() {
 
     return () => window.clearTimeout(timeout);
   }, [adModalOpen, adCountdown]);
+  */
 
   function setInitialFloatingFromDom() {
     const panel = panelRef.current;
@@ -291,21 +298,21 @@ function AcceptPageContent() {
   function triggerNoReaction(pointer?: { x: number; y: number }) {
     setNoAttempts((prev) => prev + 1);
 
-    if (acceptMode === "accept2") {
-      setShrinkLevel((prev) => Math.min(prev + 1, 4));
-      return;
-    }
+    // if (acceptMode === "accept2") {
+    //   setShrinkLevel((prev) => Math.min(prev + 1, 4));
+    //   return;
+    // }
 
-    if (acceptMode === "accept3") {
-      setBombStarted(true);
-      setBombRemainingMs(BOMB_COUNTDOWN_MS);
-      return;
-    }
+    // if (acceptMode === "accept3") {
+    //   setBombStarted(true);
+    //   setBombRemainingMs(BOMB_COUNTDOWN_MS);
+    //   return;
+    // }
 
-    if (acceptMode === "accept4") {
-      setAdRejectPrompt(true);
-      return;
-    }
+    // if (acceptMode === "accept4") {
+    //   setAdRejectPrompt(true);
+    //   return;
+    // }
 
     if (!noFloating) {
       setInitialFloatingFromDom();
@@ -354,17 +361,17 @@ function AcceptPageContent() {
   }
 
   if (!ready) {
-    return <main className="mobile-shell center">Loading...</main>;
+    return <main className="mobile-shell center">{t.loading}</main>;
   }
 
   if (invitationMissing) {
     return (
       <main className="mobile-shell center stack">
         <section className="paper-panel" style={{ padding: 24, width: "100%", textAlign: "center" }}>
-          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장이에요.</h2>
-          <p style={{ marginTop: 0 }}>새 초대장을 만들어 다시 공유해 주세요.</p>
+          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>{t.expiredTitle}</h2>
+          <p style={{ marginTop: 0 }}>{t.expiredDesc}</p>
           <button className="btn-primary" onClick={() => router.push("/create")}>
-            초대장 만들기
+            {t.createInvitation}
           </button>
         </section>
       </main>
@@ -572,7 +579,7 @@ function AcceptPageContent() {
                         : undefined
                 }
               >
-                아니요
+                {t.noLabel}
               </button>
             )}
           </div>
@@ -639,9 +646,14 @@ function AcceptPageContent() {
   );
 }
 
+function AcceptFallback() {
+  const t = useT();
+  return <main className="mobile-shell center">{t.loading}</main>;
+}
+
 export default function AcceptPage() {
   return (
-    <Suspense fallback={<main className="mobile-shell center">Loading...</main>}>
+    <Suspense fallback={<AcceptFallback />}>
       <AcceptPageContent />
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import InvitationCard from "@/components/InvitationCard";
 import TopBannerAd from "@/components/TopBannerAd";
 import { normalizeAcceptMode } from "@/lib/acceptModes";
+import { useT } from "@/lib/localeContext";
 import { initialInvitationState, loadInvitationState } from "@/lib/storage";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
@@ -14,6 +15,7 @@ function ResultPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("invite");
+  const t = useT();
   const [state, setState] = useState(initialInvitationState);
   const [ready, setReady] = useState(false);
   const [invitationMissing, setInvitationMissing] = useState(false);
@@ -60,17 +62,17 @@ function ResultPageContent() {
   }, [inviteToken]);
 
   if (!ready) {
-    return <main className="mobile-shell center">불러오는 중...</main>;
+    return <main className="mobile-shell center">{t.loading}</main>;
   }
 
   if (invitationMissing) {
     return (
       <main className="mobile-shell center stack">
         <section className="paper-panel" style={{ padding: 24, width: "100%" }}>
-          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>만료된 초대장입니다.</h2>
-          <p style={{ marginTop: 0 }}>새 초대장을 만들어 다시 공유해 주세요.</p>
+          <h2 style={{ marginTop: 0, marginBottom: 8, fontSize: "30px" }}>{t.expiredTitle}</h2>
+          <p style={{ marginTop: 0 }}>{t.expiredDesc}</p>
           <button className="btn-primary" onClick={() => router.push("/create")}>
-            초대장 만들기
+            {t.createInvitation}
           </button>
         </section>
       </main>
@@ -81,10 +83,10 @@ function ResultPageContent() {
     return (
       <main className="mobile-shell center stack">
         <section className="paper-panel" style={{ padding: 24, width: "100%" }}>
-          <h2 style={{ marginTop: 0 }}>아직 수락되지 않았어요</h2>
-          <p>수락 페이지로 다시 이동해 주세요.</p>
+          <h2 style={{ marginTop: 0 }}>{t.notAcceptedTitle}</h2>
+          <p>{t.notAcceptedDesc}</p>
           <button className="btn-primary" onClick={() => router.push("/accept")}>
-            수락 페이지로 이동
+            {t.goToAccept}
           </button>
         </section>
       </main>
@@ -94,21 +96,26 @@ function ResultPageContent() {
   return (
     <main className={`mobile-shell stack ${styles.resultShell}`}>
       <TopBannerAd className="ad-top" accentColor={THEMES[state.draft.themeKey].accent} />
-      <InvitationCard draft={state.draft} photoNoticeText="초대장 정보 및 해당 사진은 약속 날짜 이후 전부 삭제됩니다." />
+      <InvitationCard draft={state.draft} photoNoticeText={t.photoNotice} />
       <button
         className="btn-primary"
         style={{ width: "100%", background: THEMES[state.draft.themeKey].accent }}
         onClick={() => router.push("/create")}
       >
-        나도 초대장 만들기
+        {t.createOwn}
       </button>
     </main>
   );
 }
 
+function ResultFallback() {
+  const t = useT();
+  return <main className="mobile-shell center">{t.loading}</main>;
+}
+
 export default function ResultPage() {
   return (
-    <Suspense fallback={<main className="mobile-shell center">불러오는 중...</main>}>
+    <Suspense fallback={<ResultFallback />}>
       <ResultPageContent />
     </Suspense>
   );

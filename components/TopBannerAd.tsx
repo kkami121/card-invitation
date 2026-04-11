@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/lib/localeContext";
 
 type Props = {
   className?: string;
@@ -14,6 +15,7 @@ const contactEmail = process.env.NEXT_PUBLIC_AD_CONTACT_EMAIL ?? "coderstudio404
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 
 export default function TopBannerAd({ className, accentColor }: Props) {
+  const t = useT();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCopiedOpen, setIsCopiedOpen] = useState(false);
   const [createdCount, setCreatedCount] = useState(0);
@@ -63,7 +65,7 @@ export default function TopBannerAd({ className, accentColor }: Props) {
       <>
         <div className={className} aria-label="ad-placeholder">
           <button type="button" className="ad-placeholder-btn" onClick={openModal}>
-            <div className="ad-placeholder">광고주님 자리입니다. 문의는 클릭해 주세요!</div>
+            <div className="ad-placeholder">{t.adPlaceholderText}</div>
           </button>
         </div>
 
@@ -76,10 +78,10 @@ export default function TopBannerAd({ className, accentColor }: Props) {
               aria-label="ad-contact-modal"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 className="ad-modal-title">광고 문의</h3>
-             
-              <p className="ad-modal-line"><strong>생성된 초대장 수:</strong> {numberFormatter.format(createdCount)}</p>
-              <p className="ad-modal-line"><strong>초대장을 수락한 사용자 수:</strong> {numberFormatter.format(acceptedCount)}</p>
+              <h3 className="ad-modal-title">{t.adContactTitle}</h3>
+
+              <p className="ad-modal-line"><strong>{t.adCreatedCount}</strong> {numberFormatter.format(createdCount)}</p>
+              <p className="ad-modal-line"><strong>{t.adAcceptedCount}</strong> {numberFormatter.format(acceptedCount)}</p>
               <p className="ad-modal-line">
                 <strong>Email:</strong>{" "}
                 <button type="button" className="ad-email-copy" onClick={handleCopyEmail}>
@@ -92,7 +94,7 @@ export default function TopBannerAd({ className, accentColor }: Props) {
                 style={accentColor ? { background: accentColor } : undefined}
                 onClick={closeModal}
               >
-                닫기
+                {t.adClose}
               </button>
             </section>
           </div>
@@ -100,7 +102,7 @@ export default function TopBannerAd({ className, accentColor }: Props) {
 
         {isCopiedOpen ? (
           <div className="ad-copy-toast" role="status" aria-live="polite">
-            복사 완료
+            {t.adEmailCopied}
           </div>
         ) : null}
       </>

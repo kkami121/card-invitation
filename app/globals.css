@@ -191,6 +191,48 @@ button {
   border-bottom-color: #7b6a53;
 }
 
+/* 커스텀 시간 선택기 */
+.editable-card-select {
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  border-radius: 0;
+  padding: 6px 2px;
+  background: transparent;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: center;
+}
+
+.editable-card-select:focus {
+  outline: none;
+  border-bottom-color: #7b6a53;
+}
+
+.time-input-custom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.time-input-colon {
+  color: var(--paper-muted, #9e8e7a);
+  padding: 0 1px;
+  user-select: none;
+}
+
+.date-input-custom {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  flex: 1;
+  width: 100%;
+}
+
 .editable-card-input.title {
   display: block;
   width: 100%;
