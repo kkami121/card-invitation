@@ -186,6 +186,13 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
       const locations: LiveLocation[] = JSON.parse(event.data as string);
       const map = mapRef.current;
       const newIds = new Set(locations.map((l) => l.userId));
+
+      // 창작자를 제외한 나머지를 userNum 순으로 정렬해 1번부터 재번호
+      // → 모든 클라이언트가 동일한 기준으로 번호를 매길 수 있음
+      const nonCreators = locations
+        .filter((l) => creatorUserId ? l.userId !== creatorUserId : true)
+        .sort((a, b) => a.userNum - b.userNum);
+      const displayNumMap = new Map(nonCreators.map((l, i) => [l.userId, i + 1]));
       // 마커 추가 전에 체크해야 정확한 "첫 수신" 판단 가능
       const isFirstData = markersRef.current.size === 0 && locations.length > 0;
 
@@ -195,7 +202,7 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
         const color = markerColor(loc.userNum);
         const opacity = loc.isActive ? 1 : 0.45;
         const ring = isMe ? `outline:3px solid ${color};outline-offset:2px;` : "";
-        const label = isCreator ? "★" : String(loc.userNum);
+        const label = isCreator ? "★" : String(displayNumMap.get(loc.userId) ?? loc.userNum);
 
         const icon = L.divIcon({
           className: "",
@@ -204,7 +211,8 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
           iconAnchor: [13, 13],
         });
 
-        const popupText = isMe ? t.mapMarkerMe : (loc.name || `${t.mapGuest} ${loc.userNum}`);
+        const displayNum = displayNumMap.get(loc.userId) ?? loc.userNum;
+        const popupText = isMe ? t.mapMarkerMe : (loc.name || `${t.mapGuest} ${displayNum}`);
         const existing = markersRef.current.get(loc.userId);
         if (existing) {
           existing.setLatLng([loc.lat, loc.lng]);
@@ -248,7 +256,7 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
       {/* 내 위치로 이동 버튼 */}
       {withinWindow && hasGeo && (
         <button
-          className="map-my-location-btn"
+          className={`map-my-location-btn${displayName === null ? " map-my-location-btn--raised" : ""}`}
           onClick={() => {
             if (myLatLngRef.current && mapRef.current) {
               mapRef.current.setView(myLatLngRef.current, 14, { animate: true });
@@ -279,22 +287,23 @@ export default function MapView({ invitationId, myUserId, creatorUserId, eventDa
         </div>
       )}
 
-      {/* 이름 입력 오버레이 */}
+      {/* 이름 입력 패널 — 지도를 가리지 않는 하단 플로팅 패널 */}
       {withinWindow === true && displayName === null && (
-        <div className="map-overlay map-name-prompt" onClick={(e) => e.stopPropagation()}>
+        <div className="map-name-panel" onClick={(e) => e.stopPropagation()}>
           <p className="map-name-title">{t.mapNameTitle}</p>
-          <input
-            className="map-name-field"
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-            placeholder={t.mapNamePlaceholder}
-            maxLength={20}
-            onKeyDown={(e) => { if (e.key === "Enter") confirmName(); }}
-            autoFocus
-          />
-          <button className="map-name-confirm" onClick={confirmName}>
-            {t.mapNameConfirm}
-          </button>
+          <div className="map-name-row">
+            <input
+              className="map-name-field"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder={t.mapNamePlaceholder}
+              maxLength={20}
+              onKeyDown={(e) => { if (e.key === "Enter") confirmName(); }}
+            />
+            <button className="map-name-confirm" onClick={confirmName}>
+              {t.mapNameConfirm}
+            </button>
+          </div>
         </div>
       )}
 
