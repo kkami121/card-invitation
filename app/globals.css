@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap");
-
 :root {
   --paper-base: #f5f0e6;
   --paper-ink: #2f2a24;
@@ -205,6 +203,7 @@ button {
   -webkit-appearance: none;
   appearance: none;
   text-align: center;
+  text-align-last: center; /* iOS Safari에서 select 텍스트 가운데 정렬 */
 }
 
 .editable-card-select:focus {
@@ -215,6 +214,7 @@ button {
 .time-input-custom {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   flex: 1;
 }
