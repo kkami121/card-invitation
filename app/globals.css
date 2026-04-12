@@ -239,16 +239,9 @@ button {
   display: block;
   width: 100%;
   text-align: center;
-  font-size: clamp(30px, 9vw, 42px);
   line-height: 1.1;
   margin-top: 6px;
   border-bottom: 0;
-}
-
-@media (max-width: 380px) {
-  .editable-card-input.title {
-    font-size: 30px;
-  }
 }
 
 .upload-inline {
