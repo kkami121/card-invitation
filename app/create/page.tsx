@@ -610,6 +610,8 @@ export default function CreatePage() {
 
             <div style={{ textAlign: "center", marginBottom: 10 }}>
               <input
+                name="invitation-emojis"
+                autoComplete="off"
                 className="editable-card-input"
                 value={draft.emojis}
                 onChange={(e) => updateField("emojis", e.target.value)}
@@ -618,10 +620,13 @@ export default function CreatePage() {
               />
               <input
                 ref={titleInputRef}
+                name="invitation-title"
+                autoComplete="off"
                 className={`editable-card-input title ${theme.titleClassName}`}
                 value={draft.title}
                 onChange={(e) => updateField("title", e.target.value)}
                 placeholder={theme.title}
+                spellCheck={false}
                 style={{ color: theme.accent, fontSize: `${titleFontSize}px` }}
               />
             </div>
@@ -639,6 +644,8 @@ export default function CreatePage() {
                 <span className="meta-icon" aria-hidden>📍</span>
                 <input
                   ref={placeInputRef}
+                  name="invitation-place"
+                  autoComplete="off"
                   className="editable-card-input"
                   value={draft.place}
                   onChange={(e) => updateField("place", e.target.value)}

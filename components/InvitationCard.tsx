@@ -1,6 +1,6 @@
 "use client";
 
-import { type SyntheticEvent, useMemo, useRef } from "react";
+import { type SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useT } from "@/lib/localeContext";
 import { THEMES } from "@/lib/themes";
 import { InvitationDraft } from "@/lib/types";
@@ -78,6 +78,52 @@ export default function InvitationCard({ draft, photoNoticeText }: Props) {
   const formattedTime = draft.time ? formatDisplayTime(draft.time, locale) : null;
   const retryCountRef = useRef(0);
   const cacheSeedRef = useRef(Date.now());
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const [titleFontSize, setTitleFontSize] = useState(42);
+
+  const fitTitleFontSize = useCallback(() => {
+    const input = titleInputRef.current;
+    if (!input) return;
+
+    const text = draft.title || theme.title;
+    const maxWidth = input.clientWidth - 6;
+    if (!text || maxWidth <= 0) {
+      setTitleFontSize(42);
+      return;
+    }
+
+    const computed = window.getComputedStyle(input);
+    const fontFamily = computed.fontFamily;
+    const fontWeight = computed.fontWeight || "400";
+    const letterSpacing = Number.parseFloat(computed.letterSpacing);
+    const letterSpacingPx = Number.isFinite(letterSpacing) ? letterSpacing : 0;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let nextSize = 42;
+    const minSize = 22;
+
+    while (nextSize > minSize) {
+      ctx.font = `${fontWeight} ${nextSize}px ${fontFamily}`;
+      const measured = ctx.measureText(text).width + Math.max(0, text.length - 1) * letterSpacingPx;
+      if (measured <= maxWidth) break;
+      nextSize -= 1;
+    }
+
+    setTitleFontSize(nextSize);
+  }, [draft.title, theme.title]);
+
+  useEffect(() => {
+    fitTitleFontSize();
+  }, [fitTitleFontSize]);
+
+  useEffect(() => {
+    window.addEventListener("resize", fitTitleFontSize);
+    return () => window.removeEventListener("resize", fitTitleFontSize);
+  }, [fitTitleFontSize]);
+
   const isUploadedImage = draft.imageUrl.startsWith("/uploads/") || draft.imageUrl.startsWith("/api/uploads/");
   const imageSrc = useMemo(() => {
     if (!isUploadedImage) {
@@ -107,9 +153,17 @@ export default function InvitationCard({ draft, photoNoticeText }: Props) {
     <article className="paper-panel" style={{ padding: "20px 20px 10px" }}>
       <div style={{ textAlign: "center", marginBottom: 8 }}>
         <p style={{ margin: 0, fontSize: 26, letterSpacing: 3 }}>{draft.emojis || theme.emojis.join(" ")}</p>
-        <h1 className={theme.titleClassName} style={{ color: theme.accent, margin: "8px 0 0" }}>
-          {draft.title || theme.title}
-        </h1>
+        <input
+          ref={titleInputRef}
+          name="invitation-title"
+          autoComplete="off"
+          className={`editable-card-input title ${theme.titleClassName}`}
+          value={draft.title || theme.title}
+          readOnly
+          tabIndex={-1}
+          spellCheck={false}
+          style={{ color: theme.accent, fontSize: `${titleFontSize}px` }}
+        />
       </div>
 
       <section className="stack" style={{ marginTop: 10, gap: 2 }}>
