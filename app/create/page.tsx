@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type PointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DateInput from "@/components/DateInput";
 import TimeInput from "@/components/TimeInput";
@@ -216,28 +216,42 @@ function daysUntilTheme(themeKey: OccasionKey, base: Date): number {
   return Math.floor(diff / (24 * 60 * 60 * 1000));
 }
 
+// SSR에서 useLayoutEffect는 경고가 발생하므로 클라이언트에서만 사용
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function CreatePage() {
   const router = useRouter();
   const t = useT();
   const locale = useLocale();
-  const now = useMemo(() => new Date(), []);
-
   const [draft, setDraft] = useState<InvitationDraft>(() => ({
     ...initialInvitationState.draft,
     themeKey: "promise",
     acceptMode: initialInvitationState.draft.acceptMode,
     emojis: THEMES.promise.emojis.join(" "),
     title: THEMES.promise.title,
-    date: formatDate(now),
-    time: formatTime(now),
+    date: formatDate(new Date()),
+    time: formatTime(new Date()),
     place: "",
     imageUrl: THEMES.promise.defaultImageUrl,
   }));
+
+  // SSR HTML에는 UTC 시간이 들어가므로, 시간 필드는 클라이언트에서만 표시
+  // timeReady가 false일 때 visibility:hidden → 잘못된 시간이 사용자에게 보이지 않음
+  useIsomorphicLayoutEffect(() => {
+    const now = new Date();
+    setDraft((prev) => ({
+      ...prev,
+      date: formatDate(now),
+      time: formatTime(now),
+    }));
+    setTimeReady(true);
+  }, []);
   const [dragX, setDragX] = useState(0);
   const [transitionMs, setTransitionMs] = useState(ANIMATION_MS);
   const [isDragging, setIsDragging] = useState(false);
   const [titleFontSize, setTitleFontSize] = useState(42);
   const [placePlaceholder, setPlacePlaceholder] = useState<string>(() => getRandomFrom(t.placePlaceholders));
+  const [timeReady, setTimeReady] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -249,11 +263,12 @@ export default function CreatePage() {
   const placeInputRef = useRef<HTMLInputElement | null>(null);
 
   const orderedThemes = useMemo(() => {
+    const base = new Date();
     const allThemes = Object.values(THEMES);
     const promiseTheme = allThemes.find((themeOption) => themeOption.key === "promise");
     const sortedByNear = allThemes
       .filter((themeOption) => themeOption.key !== "promise")
-      .sort((a, b) => daysUntilTheme(a.key, now) - daysUntilTheme(b.key, now));
+      .sort((a, b) => daysUntilTheme(a.key, base) - daysUntilTheme(b.key, base));
 
     if (!promiseTheme) {
       return sortedByNear;
@@ -263,7 +278,7 @@ export default function CreatePage() {
     const rightSide = sortedByNear.slice(0, splitIndex);
     const leftSide = sortedByNear.slice(splitIndex);
     return [...leftSide, promiseTheme, ...rightSide];
-  }, [now]);
+  }, []);
 
   const currentThemeIndex = Math.max(0, orderedThemes.findIndex((themeOption) => themeOption.key === draft.themeKey));
   const theme = THEMES[draft.themeKey];
@@ -612,11 +627,11 @@ export default function CreatePage() {
             </div>
 
             <section className="stack" style={{ marginTop: 10 }}>
-              <div className="row">
+              <div className="row" style={{ visibility: timeReady ? "visible" : "hidden" }}>
                 <span className="meta-icon" aria-hidden>📅</span>
                 <DateInput value={draft.date} onChange={(v) => updateField("date", v)} />
               </div>
-              <div className="row">
+              <div className="row" style={{ visibility: timeReady ? "visible" : "hidden" }}>
                 <span className="meta-icon" aria-hidden>🕒</span>
                 <TimeInput value={draft.time} onChange={(v) => updateField("time", v)} />
               </div>
