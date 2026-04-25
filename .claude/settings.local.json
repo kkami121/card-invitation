@@ -23,7 +23,9 @@
       "Bash(cat next.config.js)",
       "Bash(cat next.config.mjs)",
       "Bash(npm run:*)",
-      "Bash(npx.cmd next:*)"
+      "Bash(npx.cmd next:*)",
+      "Bash(grep -v \"^\\\\\\\\./.next\")",
+      "Bash(dir \"C:\\\\Users\\\\BOSS\\\\Desktop\\\\MyProject\\\\card-invitation\")"
     ]
   }
 }
